@@ -17,7 +17,6 @@ class TvHomePage(TvBasePage):
     def __init__(self, driver: BaseDriver):
         super().__init__(driver)
         self.driver.load_page(self.__url)
-        self.accept_cookies()
 
     def login(self, user, password):
         timeout = self.__timeout

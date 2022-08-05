@@ -14,6 +14,7 @@ class TvChartPage(TvBasePage):
     def __init__(self, driver: BaseDriver):
         super().__init__(driver)
         self.driver.load_page("https://www.tradingview.com/chart/")
+        self.accept_cookies()
 
     def login(self, user, password):
         pass
