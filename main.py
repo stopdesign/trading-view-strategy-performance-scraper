@@ -30,11 +30,6 @@ def start():
     with TimeUtils.measure_time("Obtaining market cap data took {}."):
         crypto_entries = obtain_data(driver)
 
-    with TimeUtils.measure_time("Sending email with data took {}."):
-        SendDataUseCase.send_data(message="Crypto watchlist report",
-                                  entries=crypto_entries,
-                                  file_name=f"Crypto-Watchlist-{TimeUtils.get_time_stamp()}.xlsx")
-
 
 if __name__ == '__main__':
     try:

@@ -10,7 +10,7 @@ from utils import ScraperUtils, DataFrameUtils
 
 
 class TvHomePage(TvBasePage):
-    __url = "https://www.tradingview.com/crypto-screener/"
+    __url = "https://www.tradingview.com/"
 
     def __init__(self, driver: BaseDriver):
         super().__init__(driver)
@@ -18,10 +18,10 @@ class TvHomePage(TvBasePage):
         self.accept_cookies()
 
     def login(self, user, password):
-        timeout = 3
+        timeout = 5
         login_dropdown = self.driver.wait_and_get_element(timeout, By.CLASS_NAME, "tv-header__user-menu-button")
         login_dropdown.click()
-        xpath = '//div[contains(text(), "Sign in")]'
+        xpath = '//span[contains(text(), "Sign in")]'
         sign_in_btn = self.driver.wait_and_get_element(timeout, By.XPATH, xpath)
         sign_in_btn.click()
         by_email_btn = self.driver.wait_and_get_element(timeout, By.CLASS_NAME, "tv-signin-dialog__toggle-email")
