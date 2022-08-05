@@ -1,0 +1,9 @@
+requests
+bs4
+lxml
+selenium
+pandas
+html5lib
+openpyxl
+python-dotenv===0.20.0
+xlsxwriter

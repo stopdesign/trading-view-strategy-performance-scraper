@@ -1,0 +1,31 @@
+version: '2.4'
+
+services:
+  tv-strategy-performance-scraper:
+    # relative path to the dockerfile based from the docker compose file
+    build:
+      context: .
+      shm_size: 4gb
+      args:
+        DIRPATH: "/tv-scraper/"
+    container_name: "tv-strategy-performance-scraper"
+    mem_limit: 4gb
+    shm_size: 4gb
+    cpu_count: 2
+    cpu_percent: 50
+    cpus: 0.50
+    environment:
+      - RUNNING_ON_SERVER=1
+    volumes:
+      - /chochko/web_scrapers/trading_view_strategy_performance_scraper:/tv-scraper
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "35m"
+    networks:
+      - local
+
+networks:
+  local:
+    external: true
