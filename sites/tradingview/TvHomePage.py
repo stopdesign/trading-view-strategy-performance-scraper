@@ -6,11 +6,13 @@ from selenium.webdriver.common.by import By
 
 from driver.BaseDriver import BaseDriver
 from sites.tradingview.TvBasePage import TvBasePage
+from sites.tradingview.TvChartPage import TvChartPage
 from utils import ScraperUtils, DataFrameUtils
 
 
 class TvHomePage(TvBasePage):
     __url = "https://www.tradingview.com/"
+    __timeout = 5
 
     def __init__(self, driver: BaseDriver):
         super().__init__(driver)
@@ -18,7 +20,7 @@ class TvHomePage(TvBasePage):
         self.accept_cookies()
 
     def login(self, user, password):
-        timeout = 5
+        timeout = self.__timeout
         login_dropdown = self.driver.wait_and_get_element(timeout, By.CLASS_NAME, "tv-header__user-menu-button")
         login_dropdown.click()
         xpath = '//span[contains(text(), "Sign in")]'
@@ -47,6 +49,19 @@ class TvHomePage(TvBasePage):
             self.wait(0.1)
             random_widget_in_sidebar.click()  # second time to hide it
         return self
+
+    def select_chart(self):
+        # timeout = self.__timeout
+        # menu = self.driver.wait_and_get_element(timeout, By.CLASS_NAME, "tv-header__hamburger-menu")
+        # menu.click()
+        # xpath = '//span[contains(text(), "Products")]'
+        # products = self.driver.wait_and_get_element(timeout, By.XPATH, xpath)
+        # products.click()
+        # xpath = '//span[contains(text(), "Chart+")]'
+        # chart = self.driver.wait_and_get_element(timeout, By.XPATH, xpath)
+        # chart.click()
+        self.wait(1)
+        return TvChartPage(self.driver)
 
     def select_filter_with(self, filter_name: str):
         def is_filter_selected(element) -> bool:
