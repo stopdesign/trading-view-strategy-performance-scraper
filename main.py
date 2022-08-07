@@ -16,7 +16,8 @@ def obtain_data(driver: ScraperDriver):
     homepage = TvHomePage(driver)
     scan_results = homepage \
         .login("radmi.b.4@gmail.com", "xtn8ubd_RKV.abg_hya") \
-        .select_chart()
+        .select_chart() \
+        .clean_all_overlays()
         # .hide_sidebar()
         # .select_filter_with(EnvConfig.filter_name()) \
         # .wait(2) \
