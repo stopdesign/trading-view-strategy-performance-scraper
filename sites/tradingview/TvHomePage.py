@@ -50,15 +50,6 @@ class TvHomePage(TvBasePage):
         return self
 
     def select_chart(self):
-        # timeout = self.__timeout
-        # menu = self.driver.wait_and_get_element(timeout, By.CLASS_NAME, "tv-header__hamburger-menu")
-        # menu.click()
-        # xpath = '//span[contains(text(), "Products")]'
-        # products = self.driver.wait_and_get_element(timeout, By.XPATH, xpath)
-        # products.click()
-        # xpath = '//span[contains(text(), "Chart+")]'
-        # chart = self.driver.wait_and_get_element(timeout, By.XPATH, xpath)
-        # chart.click()
         self.wait(1)
         return TvChartPage(self.driver)
 
