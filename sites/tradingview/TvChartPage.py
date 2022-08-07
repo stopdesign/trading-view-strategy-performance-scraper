@@ -1,5 +1,6 @@
 from selenium.common import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 
 from driver.BaseDriver import BaseDriver
 from sites.tradingview.TvBasePage import TvBasePage
@@ -55,3 +56,23 @@ class TvChartPage(TvBasePage):
             return
         if close_button:
             close_button.click()
+
+    def run_strategy1(self):
+        self.check_and_close_popups()
+        footer_tabs = self.driver.wait_and_get_element(5, By.ID, "footer-chart-panel")
+        strategy_tester = footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Strategy Tester')]")
+        self.__load_strategy_on_chart(footer_tabs, "bla")
+        return self
+
+    def __load_strategy_on_chart(self, footer_tabs: WebElement, strategy: str):
+        self.check_and_close_popups()
+        pine_script_editor_window = self.driver.wait_and_get_element(3, By.ID, "bottom-area")
+        if "height: 0px" in pine_script_editor_window.get_attribute("style"):
+            pine_editor = footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]")
+            pine_editor.click()
+        pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
+        pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='open-script']").click()
+        indicator_type_script = self.driver.wait_and_get_element(3, By.XPATH, "//div[@data-name='menu-inner']") \
+            .find_element(By.XPATH, "//span[contains(text(), 'Indicator')]")
+        indicator_type_script.click()
+        print()

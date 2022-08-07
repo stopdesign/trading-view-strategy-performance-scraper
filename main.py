@@ -17,7 +17,8 @@ def obtain_data(driver: ScraperDriver):
     scan_results = homepage \
         .login("radmi.b.4@gmail.com", "xtn8ubd_RKV.abg_hya") \
         .select_chart() \
-        .clean_all_overlays()
+        .clean_all_overlays() \
+        .run_strategy1()
         # .hide_sidebar()
         # .select_filter_with(EnvConfig.filter_name()) \
         # .wait(2) \
