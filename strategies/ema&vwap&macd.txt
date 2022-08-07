@@ -17,8 +17,8 @@ roundn(x, n) =>
 
 // Configure backtest start date with inputs
 startDate = input.int(title='Start Date', defval=1, minval=1, maxval=31)
-startMonth = input.int(title='Start Month', defval=1, minval=1, maxval=12)
-startYear = input.int(title='Start Year', defval=2021, minval=1800, maxval=2100)
+startMonth = input.int(title='Start Month', defval=5, minval=1, maxval=12)
+startYear = input.int(title='Start Year', defval=2022, minval=1800, maxval=2100)
 EMA_N = input.int(title='EMA period', defval=200, step=5)
 ATR_N = input(title='ATR period', defval=14)
 ATR_distance = input.float(title='ATR distance multiplier', defval=2.0, step=0.5)

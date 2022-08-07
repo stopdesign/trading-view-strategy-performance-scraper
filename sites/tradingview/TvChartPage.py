@@ -33,6 +33,7 @@ class TvChartPage(TvBasePage):
         #     print(f"Overlays count: {len(overlays)}")
         #     return len(overlays) > 0
         self.check_and_close_popups()
+        self.__change_full_screen_state_footer(False)
         chart = self.driver.wait_and_get_element(5, By.CLASS_NAME, "chart-widget")
         ActionChains(self.driver).context_click(chart).perform()
         overlays_table = self.driver.wait_and_get_element(5, By.ID, "overlap-manager-root")
@@ -88,9 +89,23 @@ class TvChartPage(TvBasePage):
                 .key_down(Keys.COMMAND).send_keys("v").key_up(Keys.COMMAND) \
                 .perform()
 
+        def __add_to_chart():
+            pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
+            pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='add-script-to-chart']").click()
+
         self.check_and_close_popups()
         __open_editor_editor_window()
         __clear_content_and_enter_strategy()
-        # __load_to_chart()
-
+        __add_to_chart()
+        self.__change_full_screen_state_footer(True)
         print()
+
+    def __change_full_screen_state_footer(self, should_be_full_screen: bool):
+        try:
+            maximize_button = self.driver.wait_and_get_element(3, By.XPATH, "//button[@data-name='toggle-maximize-button']")
+        except TimeoutException:
+            return self
+        is_maximized = bool(maximize_button.get_attribute("data-active"))
+        if is_maximized != should_be_full_screen:
+            maximize_button.click()
+        return self
