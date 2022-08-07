@@ -7,3 +7,4 @@ html5lib
 openpyxl
 python-dotenv===0.20.0
 xlsxwriter
+pyperclip===1.8.2

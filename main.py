@@ -6,7 +6,7 @@ from driver.ScraperDriver import ScraperDriver
 from network import NotifierClient
 from sites.tradingview.TvHomePage import TvHomePage
 from usecase import SendDataUseCase
-from utils import TimeUtils
+from utils import TimeUtils, FileUtils
 
 logging.basicConfig(format='[%(asctime)s.%(msecs)03d][%(levelname)s]:  %(message)s',
                     datefmt='%Y-%m-%dT%H:%M:%S', level=logging.INFO)
@@ -18,7 +18,7 @@ def obtain_data(driver: ScraperDriver):
         .login("radmi.b.4@gmail.com", "xtn8ubd_RKV.abg_hya") \
         .select_chart() \
         .clean_all_overlays() \
-        .run_strategy1()
+        .run_strategy(FileUtils.read_file("strategies/ema&vwap&macd.txt"))
         # .hide_sidebar()
         # .select_filter_with(EnvConfig.filter_name()) \
         # .wait(2) \

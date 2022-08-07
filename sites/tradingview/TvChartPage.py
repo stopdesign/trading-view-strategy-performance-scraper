@@ -1,3 +1,4 @@
+import pyperclip
 from selenium.common import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -57,11 +58,11 @@ class TvChartPage(TvBasePage):
         if close_button:
             close_button.click()
 
-    def run_strategy1(self):
+    def run_strategy(self, strategy_content: str):
         self.check_and_close_popups()
         footer_tabs = self.driver.wait_and_get_element(5, By.ID, "footer-chart-panel")
         strategy_tester = footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Strategy Tester')]")
-        self.__load_strategy_on_chart(footer_tabs, "bla")
+        self.__load_strategy_on_chart(footer_tabs, strategy_content)
         return self
 
     def __load_strategy_on_chart(self, footer_tabs: WebElement, strategy: str):
@@ -77,17 +78,19 @@ class TvChartPage(TvBasePage):
             indicator_type_script.click()
 
         def __clear_content_and_enter_strategy():
-            editor_window = self.driver.wait_and_get_element(3, By.CLASS_NAME, "ace_content")
-            editor_window.click()
+            # editor_window = self.driver.wait_and_get_element(3, By.CLASS_NAME, "ace_content")
+            # editor_window.click()
+            print()
+            pyperclip.copy(strategy)
             ActionChains(self.driver) \
                 .key_down(Keys.COMMAND).send_keys("a").key_up(Keys.COMMAND) \
                 .send_keys(Keys.DELETE) \
-                .send_keys(strategy) \
+                .key_down(Keys.COMMAND).send_keys("v").key_up(Keys.COMMAND) \
                 .perform()
 
         self.check_and_close_popups()
         __open_editor_editor_window()
         __clear_content_and_enter_strategy()
-
+        # __load_to_chart()
 
         print()

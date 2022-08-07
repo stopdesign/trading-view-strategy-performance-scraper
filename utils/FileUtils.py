@@ -3,7 +3,7 @@ import shutil
 
 
 def read_file(path: str):
-    with open(path, 'rb') as f:
+    with open(path, 'r') as f:
         content = f.read()
     return content
 
