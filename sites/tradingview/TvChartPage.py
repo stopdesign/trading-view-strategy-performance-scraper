@@ -4,7 +4,7 @@ from selenium.webdriver.remote.webelement import WebElement
 
 from driver.BaseDriver import BaseDriver
 from sites.tradingview.TvBasePage import TvBasePage
-from selenium.webdriver import ActionChains
+from selenium.webdriver import ActionChains, Keys
 
 
 class TvChartPage(TvBasePage):
@@ -65,14 +65,29 @@ class TvChartPage(TvBasePage):
         return self
 
     def __load_strategy_on_chart(self, footer_tabs: WebElement, strategy: str):
+        def __open_editor_editor_window():
+            pine_script_editor_window = self.driver.wait_and_get_element(3, By.ID, "bottom-area")
+            if "height: 0px" in pine_script_editor_window.get_attribute("style"):
+                pine_editor = footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]")
+                pine_editor.click()
+            pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
+            pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='open-script']").click()
+            indicator_type_script = self.driver.wait_and_get_element(3, By.XPATH, "//div[@data-name='menu-inner']") \
+                .find_element(By.XPATH, "//span[contains(text(), 'Indicator')]")
+            indicator_type_script.click()
+
+        def __clear_content_and_enter_strategy():
+            editor_window = self.driver.wait_and_get_element(3, By.CLASS_NAME, "ace_content")
+            editor_window.click()
+            ActionChains(self.driver) \
+                .key_down(Keys.COMMAND).send_keys("a").key_up(Keys.COMMAND) \
+                .send_keys(Keys.DELETE) \
+                .send_keys(strategy) \
+                .perform()
+
         self.check_and_close_popups()
-        pine_script_editor_window = self.driver.wait_and_get_element(3, By.ID, "bottom-area")
-        if "height: 0px" in pine_script_editor_window.get_attribute("style"):
-            pine_editor = footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]")
-            pine_editor.click()
-        pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
-        pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='open-script']").click()
-        indicator_type_script = self.driver.wait_and_get_element(3, By.XPATH, "//div[@data-name='menu-inner']") \
-            .find_element(By.XPATH, "//span[contains(text(), 'Indicator')]")
-        indicator_type_script.click()
+        __open_editor_editor_window()
+        __clear_content_and_enter_strategy()
+
+
         print()
