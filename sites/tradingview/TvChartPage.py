@@ -72,7 +72,7 @@ class TvChartPage(TvBasePage):
             # pine_script_editor_window = self.driver.wait_and_get_element(3, By.ID, "bottom-area")
             xpath = "//button[@data-name='toggle-visibility-button']"
             visibility_footer_window_btn = self.driver.wait_and_get_element(3, By.XPATH, xpath)
-            is_footer_window_minimize = bool(visibility_footer_window_btn.get_attribute("data-active"))
+            is_footer_window_minimize = json.loads(visibility_footer_window_btn.get_attribute("data-active"))
             if is_footer_window_minimize:
                 visibility_footer_window_btn.click()
                 self.__change_full_screen_state_footer(False)
