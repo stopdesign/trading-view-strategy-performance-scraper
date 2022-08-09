@@ -1,4 +1,5 @@
 import pyperclip
+import json
 from selenium.common import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -68,10 +69,13 @@ class TvChartPage(TvBasePage):
 
     def __load_strategy_on_chart(self, footer_tabs: WebElement, strategy: str):
         def __open_editor_editor_window():
-            pine_script_editor_window = self.driver.wait_and_get_element(3, By.ID, "bottom-area")
-            if "height: 0px" in pine_script_editor_window.get_attribute("style"):
-                pine_editor = footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]")
-                pine_editor.click()
+            # pine_script_editor_window = self.driver.wait_and_get_element(3, By.ID, "bottom-area")
+            xpath = "//button[@data-name='toggle-visibility-button']"
+            visibility_footer_window_btn = self.driver.wait_and_get_element(3, By.XPATH, xpath)
+            is_footer_window_minimize = bool(visibility_footer_window_btn.get_attribute("data-active"))
+            if is_footer_window_minimize:
+                visibility_footer_window_btn.click()
+                self.__change_full_screen_state_footer(False)
             pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
             pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='open-script']").click()
             indicator_type_script = self.driver.wait_and_get_element(3, By.XPATH, "//div[@data-name='menu-inner']") \
@@ -102,10 +106,11 @@ class TvChartPage(TvBasePage):
 
     def __change_full_screen_state_footer(self, should_be_full_screen: bool):
         try:
-            maximize_button = self.driver.wait_and_get_element(3, By.XPATH, "//button[@data-name='toggle-maximize-button']")
+            xpath = "//button[@data-name='toggle-maximize-button']"
+            maximize_button = self.driver.wait_and_get_element(3, By.XPATH, xpath)
         except TimeoutException:
             return self
-        is_maximized = bool(maximize_button.get_attribute("data-active"))
+        is_maximized = json.loads(maximize_button.get_attribute("data-active"))
         if is_maximized != should_be_full_screen:
             maximize_button.click()
         return self
