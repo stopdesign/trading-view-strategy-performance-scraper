@@ -76,6 +76,7 @@ class TvChartPage(TvBasePage):
             if is_footer_window_minimize:
                 visibility_footer_window_btn.click()
                 self.__change_full_screen_state_footer(False)
+            footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]").click()
             pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
             pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='open-script']").click()
             indicator_type_script = self.driver.wait_and_get_element(3, By.XPATH, "//div[@data-name='menu-inner']") \
