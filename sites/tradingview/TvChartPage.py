@@ -37,9 +37,9 @@ class TvChartPage(TvBasePage):
         self.__change_full_screen_state_footer(False)
         chart = self.driver.wait_and_get_element(5, By.CLASS_NAME, "chart-widget")
         ActionChains(self.driver).context_click(chart).perform()
-        overlays_table = self.driver.wait_and_get_element(5, By.ID, "overlap-manager-root")
-        remove_indicators = overlays_table.find_element(By.XPATH, "//span[contains(text(), 'Remove indicators')]")
-        reset_chart = overlays_table.find_element(By.XPATH, "//span[contains(text(), 'Reset chart')]")
+        context_overlay_menu = self.driver.wait_and_get_element(5, By.CLASS_NAME, "context-menu")
+        remove_indicators = context_overlay_menu.find_element(By.XPATH, "//span[contains(text(), 'Remove indicators')]")
+        reset_chart = context_overlay_menu.find_element(By.XPATH, "//span[contains(text(), 'Reset chart')]")
         # https://stackoverflow.com/a/44914767
         remove_indicators.click()
         try:
