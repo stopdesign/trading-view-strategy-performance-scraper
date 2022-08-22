@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 import re
 from pandas import DataFrame
@@ -10,6 +12,13 @@ def extract_tv_table_unwanted_info(driver) -> DataFrame:
     html_content = re.sub(r'<span class="js-field-value(\s|\d|\w|"|>|-|_|\.)*</span>', "", html_content)  # replaces the custom filtered values on each column as second row
     table = extract_head_and_body_from_table(html_content, 1)
     return table
+
+
+def extract_number_only_from(text: str):
+    try:
+        return float("".join(re.findall(r"-?\d*?\.?\d+", text)))
+    except:
+        return math.nan
 
 
 def extract_head_and_body_from_table(html_content, table_position) -> DataFrame:

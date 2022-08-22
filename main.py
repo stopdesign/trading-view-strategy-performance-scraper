@@ -14,11 +14,13 @@ logging.basicConfig(format='[%(asctime)s.%(msecs)03d][%(levelname)s]:  %(message
 
 def obtain_data(driver: ScraperDriver):
     homepage = TvHomePage(driver)
+    strategy_report = []
     scan_results = homepage \
         .login("radmi.b.4@gmail.com", "xtn8ubd_RKV.abg_hya") \
         .select_chart() \
         .clean_all_overlays() \
-        .run_strategy(FileUtils.read_file("strategies/ema&vwap&macd.pinescript"))
+        .run_strategy(FileUtils.read_file("strategies/ema&vwap&macd.pinescript")) \
+        .extract_strategy_report_to(strategy_report, "strategy-name")
         # .hide_sidebar()
         # .select_filter_with(EnvConfig.filter_name()) \
         # .wait(2) \

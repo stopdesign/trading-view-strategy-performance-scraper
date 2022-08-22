@@ -1,3 +1,5 @@
+from typing import List
+
 import pyperclip
 import json
 from selenium.common import StaleElementReferenceException, TimeoutException
@@ -7,6 +9,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from driver.BaseDriver import BaseDriver
 from sites.tradingview.TvBasePage import TvBasePage
 from selenium.webdriver import ActionChains, Keys
+
+from utils import ScraperUtils
 
 
 class TvChartPage(TvBasePage):
@@ -72,14 +76,14 @@ class TvChartPage(TvBasePage):
             # pine_script_editor_window = self.driver.wait_and_get_element(3, By.ID, "bottom-area")
             xpath = "//button[@data-name='toggle-visibility-button']"
             visibility_footer_window_btn = self.driver.wait_and_get_element(3, By.XPATH, xpath)
-            is_footer_window_minimize = json.loads(visibility_footer_window_btn.get_attribute("data-active"))
-            if is_footer_window_minimize:
+            is_footer_window_minimized = json.loads(visibility_footer_window_btn.get_attribute("data-active"))
+            if is_footer_window_minimized:
                 visibility_footer_window_btn.click()
                 self.__change_full_screen_state_footer(False)
             footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]").click()
-            pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
+            pine_editor_tabs = self.driver.wait_and_get_element(5, By.ID, "tv-script-pine-editor-header-root")
             pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='open-script']").click()
-            indicator_type_script = self.driver.wait_and_get_element(3, By.XPATH, "//div[@data-name='menu-inner']") \
+            indicator_type_script = self.driver.wait_and_get_element(5, By.XPATH, "//div[@data-name='menu-inner']") \
                 .find_element(By.XPATH, "//span[contains(text(), 'Indicator')]")
             indicator_type_script.click()
 
@@ -104,6 +108,34 @@ class TvChartPage(TvBasePage):
         __add_to_chart()
         self.__change_full_screen_state_footer(True)
         print()
+
+    def extract_strategy_report_to(self, output: List, strategy_name: str):
+        def __read_strategy_report_summary() -> dict:
+            def __get_first_line_number_from(web_element: WebElement) -> float:
+                number = web_element.find_element(By.TAG_NAME, "strong")
+                float_number = ScraperUtils.extract_number_only_from(number.text)
+                return float_number
+
+            def __get_second_line_number_from(web_element: WebElement) -> float:
+                number = web_element.find_element(By.CLASS_NAME, "additional_percent_value")
+                float_number = ScraperUtils.extract_number_only_from(number.text)
+                return float_number
+
+            report_data_headline = self.driver.wait_and_get_element(5, By.CLASS_NAME, "report-data")
+            report_data_headline_columns = report_data_headline.find_elements(By.CLASS_NAME, "data-item")
+            return {
+                "netProfit": __get_second_line_number_from(report_data_headline_columns[0]),
+                "totalTrades": __get_first_line_number_from(report_data_headline_columns[1]),
+                "profitable": __get_first_line_number_from(report_data_headline_columns[2]),
+                "profitFactor": __get_first_line_number_from(report_data_headline_columns[3]),
+                "maxDrawdown": __get_second_line_number_from(report_data_headline_columns[4]),
+                "avgTrade": __get_second_line_number_from(report_data_headline_columns[5]),
+                "avgBarsInTrade": __get_first_line_number_from(report_data_headline_columns[6]),
+            }
+
+        stats = __read_strategy_report_summary()
+        output.append({strategy_name: stats})
+        return self
 
     def __change_full_screen_state_footer(self, should_be_full_screen: bool):
         try:
