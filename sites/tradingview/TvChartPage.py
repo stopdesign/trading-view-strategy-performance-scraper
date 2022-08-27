@@ -80,16 +80,7 @@ class TvChartPage(TvBasePage):
                 pass
 
         def __clear_overlays_with_shortcuts():
-            chart = self.__get_chart_element()
-            chart.click()
-            send_key_events(self.driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["k"])
-            xpath = "//div[@id='overlap-manager-root']//input[@data-role='search']"
-            search_for_action_popup = self.driver.wait_and_get_element(3, By.XPATH, xpath)
-            remove_indicators_str = "Remove Indicators"
-            search_for_action_popup.send_keys(remove_indicators_str)
-            xpath = "//div[@id='overlap-manager-root']//table//tr//span[text()='Remove Indicators']"
-            remove_indicators = self.driver.wait_and_get_element(3, By.XPATH, xpath)
-            remove_indicators.click()
+            self.__open_search_action_menu_and_click("Remove Indicators")
 
         self.check_and_close_popups()
         self.__change_full_screen_state_footer(False)
@@ -167,8 +158,10 @@ class TvChartPage(TvBasePage):
                 float_number = ScraperUtils.extract_number_only_from(number.text)
                 return float_number
 
-            report_data_headline = self.driver.wait_and_get_element(5, By.CLASS_NAME, "report-data")
-            report_data_headline_columns = report_data_headline.find_elements(By.CLASS_NAME, "data-item")
+            # report_data_headline = self.driver.wait_and_get_element(5, By.CLASS_NAME, "report-data")
+            # report_data_headline_columns = report_data_headline.find_elements(By.CLASS_NAME, "data-item")
+            xpath = "//div[@class='report-data']//div[@class='data-item']"
+            report_data_headline_columns = self.driver.wait_and_get_elements(5, By.XPATH, xpath)
             return {
                 "netProfit": __get_second_line_number_from(report_data_headline_columns[0]),
                 "totalTrades": __get_first_line_number_from(report_data_headline_columns[1]),
@@ -199,7 +192,7 @@ class TvChartPage(TvBasePage):
             xpath_symbol_rows = "//div[@id='overlap-manager-root']//*[contains(@class,'dialog')]" \
                                 "//*[contains(@class, 'itemRow')]"
             try:
-                found_symbol_rows = self.driver.wait_and_get_elements(3, By.XPATH, xpath_symbol_rows)
+                found_symbol_rows = self.driver.wait_and_get_elements(5, By.XPATH, xpath_symbol_rows)
             except TimeoutException:
                 raise RuntimeError(f"No symbols returned from TradingView for symbol {symbol}")
 
@@ -207,10 +200,12 @@ class TvChartPage(TvBasePage):
                 symbol_name = found_symbol.find_element(By.XPATH, "//div[@data-name='list-item-title']")
                 symbol_broker = found_symbol.find_element(By.XPATH, "//div[contains(@class,'exchangeName')]")
                 if symbol_name.text == symbol.coin_name and symbol_broker.text == symbol.broker_name:
-                    return found_symbol
+                    return symbol_name
             return None
 
-        self.__get_whole_page_element().send_keys(symbol.coin_name)
+        self.__open_search_action_menu_and_click("Change Symbol")
+        send_key_events(self.driver, keys_to_press=[symbol.coin_name])
+        # send_key_event_enter(self.driver)
         desired_symbol_element = __find_symbol()
         if desired_symbol_element is None:
             raise RuntimeError(f"Can't find desired symbol for {symbol}")
@@ -250,6 +245,21 @@ class TvChartPage(TvBasePage):
             maximize_button.click()
         return self
 
+    def __open_search_action_menu_and_click(self, action_to_select: str):
+        chart = self.__get_chart_element()
+        chart.click()
+        send_key_events(self.driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["k"])
+        xpath = "//div[@id='overlap-manager-root']//input[@data-role='search']"
+        search_for_action_popup = self.driver.wait_and_get_element(3, By.XPATH, xpath)
+        search_for_action_popup.send_keys(action_to_select)
+        xpath = f"//div[@id='overlap-manager-root']//table//tr//span"
+        action_elements = self.driver.wait_and_get_elements(3, By.XPATH, xpath)
+        for action_element in action_elements:
+            if action_to_select.lower() in action_element.text.lower():
+                action_element.click()
+                return
+        raise RuntimeError(f"No action element found from the search tool or "
+                           f"function popup which contains '{action_to_select}'")
 
 # <editor-fold desc="Util section">
 def send_key_events(driver: WebDriver, keys_to_press: List[Union[Keys, str]], holding_down_keys: List[Keys] = None):

@@ -36,7 +36,7 @@ def obtain_data(driver: ScraperDriver) -> dict:
         .select_chart() \
         .clean_all_overlays() \
         .change_time_interval_to(TimeInterval.H1) \
-        .change_symbol_to(Symbol("BTCUSDTPERP", "BINANCE"))
+        .change_symbol_to(Symbol("ETHUSDTPERP", "BINANCE"))
 
 
     strategies = __build_strategies_scripts()
