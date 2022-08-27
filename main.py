@@ -3,7 +3,10 @@ import traceback
 
 import EnvConfig
 from driver.ScraperDriver import ScraperDriver
+from model.Symbol import Symbol
+from model.TimeInterval import TimeInterval
 from network import NotifierClient
+from sites.tradingview.TvChartPage import TvChartPage
 from sites.tradingview.TvHomePage import TvHomePage
 from usecase import SendDataUseCase
 from utils import TimeUtils, FileUtils
@@ -12,20 +15,39 @@ logging.basicConfig(format='[%(asctime)s.%(msecs)03d][%(levelname)s]:  %(message
                     datefmt='%Y-%m-%dT%H:%M:%S', level=logging.INFO)
 
 
-def obtain_data(driver: ScraperDriver):
+def __get_strategy_performance_stats_for(page: TvChartPage, strategy_script: str, strategy_name: str) -> dict:
+    strategy_report = {}
+    page.run_strategy(strategy_script) \
+        .extract_strategy_report_to(strategy_report, strategy_name)
+    return strategy_report
+
+
+def __build_strategies_scripts() -> dict:
+    return {
+        "ema&vwap&macd": FileUtils.read_file("strategies/ema&vwap&macd.pinescript")
+    }
+
+
+def obtain_data(driver: ScraperDriver) -> dict:
     homepage = TvHomePage(driver)
-    strategy_report = []
-    scan_results = homepage \
+    strategies_report = {}
+    page = homepage \
         .login("radmi.b.4@gmail.com", "xtn8ubd_RKV.abg_hya") \
         .select_chart() \
         .clean_all_overlays() \
-        .run_strategy(FileUtils.read_file("strategies/ema&vwap&macd.pinescript")) \
-        .extract_strategy_report_to(strategy_report, "strategy-name")
-        # .hide_sidebar()
-        # .select_filter_with(EnvConfig.filter_name()) \
-        # .wait(2) \
-        # .extract_data()
-    return []
+        .change_time_interval_to(TimeInterval.H1) \
+        .change_symbol_to(Symbol("BTCUSDTPERP", "BINANCE"))
+
+
+    strategies = __build_strategies_scripts()
+    for strategy_name, strategy_script in strategies.items():
+        performance_stats = __get_strategy_performance_stats_for(page, strategy_script, strategy_name)
+        strategies_report[strategy_name] = performance_stats
+    # .hide_sidebar()
+    # .select_filter_with(EnvConfig.filter_name()) \
+    # .wait(2) \
+    # .extract_data()
+    return strategies_report
 
 
 def start():
