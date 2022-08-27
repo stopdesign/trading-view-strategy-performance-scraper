@@ -1,10 +1,7 @@
-import logging
-from time import sleep
 from typing import Optional
 
-import pyperclip
 import json
-from selenium.common import StaleElementReferenceException, TimeoutException
+from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -12,10 +9,9 @@ from driver.BaseDriver import BaseDriver
 from model.Symbol import Symbol
 from model.TimeInterval import TimeInterval
 from sites.tradingview.TvBasePage import TvBasePage
-from selenium.webdriver import Keys
 
-from usecase.chartActions import FindChartElements, SearchShortcutAction
-from utils import ScraperUtils, WebDriverKeyEventUtils
+from usecase.chartActions import FindChartElements, SearchShortcutAction, RunStrategy
+from utils import WebDriverKeyEventUtils
 
 
 class TvChartPage(TvBasePage):
@@ -31,125 +27,22 @@ class TvChartPage(TvBasePage):
         return self
 
     def clean_all_overlays(self):
-        def __scroll_to_no_candles():
-            def __move_to_end_of_candles_to_the_right():
-                WebDriverKeyEventUtils.send_key_events(self.driver,
-                                                       holding_down_keys=[Keys.COMMAND, Keys.ALT],
-                                                       keys_to_press=[Keys.ARROW_RIGHT])
-
-            def __move_chart_further_to_the_right():
-                WebDriverKeyEventUtils.send_key_events(self.driver,
-                                                       holding_down_keys=[Keys.ALT],
-                                                       keys_to_press=[Keys.ARROW_RIGHT])
-
-            __move_to_end_of_candles_to_the_right()
-            sleep(0.1)
-            __move_chart_further_to_the_right()
-            sleep(0.1)
-            __move_chart_further_to_the_right()
-            sleep(0.1)
-            __move_chart_further_to_the_right()
-
-        def __clear_overlays_with_right_click():
-            __scroll_to_no_candles()
-
-            chart = FindChartElements.find_chart_element(self.driver)
-            WebDriverKeyEventUtils.send_right_click_event(self.driver, chart)
-            context_overlay_menu = self.driver.wait_and_get_element(5, By.CLASS_NAME, "context-menu")
-            remove_indicators = context_overlay_menu.find_element(By.XPATH,
-                                                                  "//span[contains(text(), 'Remove indicators')]")
-            reset_chart = context_overlay_menu.find_element(By.XPATH, "//span[contains(text(), 'Reset chart')]")
-            # https://stackoverflow.com/a/44914767
-            remove_indicators.click()
-            try:
-                reset_chart.click()
-            except StaleElementReferenceException as e:
-                pass
-
-        def __clear_overlays_with_shortcuts():
-            SearchShortcutAction.remove_indicators()
-
         self.check_and_close_popups()
         self.__change_full_screen_state_footer(False)
         # __clear_overlays_with_right_click()
-        __clear_overlays_with_shortcuts()
+        SearchShortcutAction.remove_indicators(self.driver)
         return self
 
     def check_and_close_popups(self):
-        try:
-            close_buttons = filter(
-                lambda button: "close-button" in button.get_attribute("class") or
-                               "closeButton" in button.get_attribute("class"),
-                FindChartElements.find_overlap_manager_element(self.driver).find_elements(By.TAG_NAME, "button"))
-            close_button = next(close_buttons, None)
-        except TimeoutException:
-            logging.info("No popups found for closing...")
-            return
-        if close_button:
-            close_button.click()
+        FindChartElements.check_and_close_popups(self.driver)
 
     def run_strategy(self, strategy_content: str):
         self.check_and_close_popups()
-        footer_tabs = self.driver.wait_and_get_element(5, By.ID, "footer-chart-panel")
-        strategy_tester = footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Strategy Tester')]")
-        self.__load_strategy_on_chart(footer_tabs, strategy_content)
+        RunStrategy.load_strategy_on_chart(self.driver, strategy_content)
         return self
 
-    def __load_strategy_on_chart(self, footer_tabs: WebElement, strategy: str):
-        def __open_editor_editor_window():
-            # pine_script_editor_window = self.driver.wait_and_get_element(3, By.ID, "bottom-area")
-            xpath = "//button[@data-name='toggle-visibility-button']"
-            visibility_footer_window_btn = self.driver.wait_and_get_element(3, By.XPATH, xpath)
-            is_footer_window_minimized = json.loads(visibility_footer_window_btn.get_attribute("data-active"))
-            if is_footer_window_minimized:
-                visibility_footer_window_btn.click()
-                self.__change_full_screen_state_footer(False)
-            footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]").click()
-            pine_editor_tabs = self.driver.wait_and_get_element(5, By.ID, "tv-script-pine-editor-header-root")
-            pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='open-script']").click()
-            indicator_type_script = self.driver.wait_and_get_element(5, By.XPATH, "//div[@data-name='menu-inner']") \
-                .find_element(By.XPATH, "//span[contains(text(), 'Indicator')]")
-            indicator_type_script.click()
-
-        def __clear_content_and_enter_strategy():
-            pyperclip.copy(strategy)
-            WebDriverKeyEventUtils.send_key_event_select_all_and_paste(self.driver)
-
-        def __add_to_chart():
-            pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
-            pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='add-script-to-chart']").click()
-
-        self.check_and_close_popups()
-        __open_editor_editor_window()
-        __clear_content_and_enter_strategy()
-        __add_to_chart()
-        # self.__change_full_screen_state_footer(True)
-
     def extract_strategy_report_to(self, output: dict, strategy_name: str):
-        def __read_strategy_report_summary() -> dict:
-            def __get_first_line_number_from(web_element: WebElement) -> float:
-                number = web_element.find_element(By.TAG_NAME, "strong")
-                float_number = ScraperUtils.extract_number_only_from(number.text)
-                return float_number
-
-            def __get_second_line_number_from(web_element: WebElement) -> float:
-                number = web_element.find_element(By.CLASS_NAME, "additional_percent_value")
-                float_number = ScraperUtils.extract_number_only_from(number.text)
-                return float_number
-
-            xpath = "//div[@class='report-data']//div[@class='data-item']"
-            report_data_headline_columns = self.driver.wait_and_get_elements(5, By.XPATH, xpath)
-            return {
-                "netProfit": __get_second_line_number_from(report_data_headline_columns[0]),
-                "totalTrades": __get_first_line_number_from(report_data_headline_columns[1]),
-                "profitable": __get_first_line_number_from(report_data_headline_columns[2]),
-                "profitFactor": __get_first_line_number_from(report_data_headline_columns[3]),
-                "maxDrawdown": __get_second_line_number_from(report_data_headline_columns[4]),
-                "avgTrade": __get_second_line_number_from(report_data_headline_columns[5]),
-                "avgBarsInTrade": __get_first_line_number_from(report_data_headline_columns[6]),
-            }
-
-        stats = __read_strategy_report_summary()
+        stats = RunStrategy.extract_strategy_report(self.driver)
         output[strategy_name] = stats
         return self
 

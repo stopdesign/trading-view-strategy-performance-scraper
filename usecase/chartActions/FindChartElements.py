@@ -1,5 +1,8 @@
+import json
+import logging
 from typing import List
 
+from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -31,3 +34,28 @@ def find_chart_element(driver: BaseDriver):
 
 def find_whole_page_element(driver: BaseDriver):
     return driver.wait_and_get_element(5, By.CLASS_NAME, "chart-page")
+
+
+def change_full_screen_state_footer(driver: BaseDriver, should_be_full_screen: bool):
+    try:
+        xpath = "//button[@data-name='toggle-maximize-button']"
+        maximize_button = driver.wait_and_get_element(3, By.XPATH, xpath)
+    except TimeoutException:
+        return
+    is_maximized = json.loads(maximize_button.get_attribute("data-active"))
+    if is_maximized != should_be_full_screen:
+        maximize_button.click()
+
+
+def check_and_close_popups(driver: BaseDriver):
+    try:
+        close_buttons = filter(
+            lambda button: "close-button" in button.get_attribute("class") or
+                           "closeButton" in button.get_attribute("class"),
+            find_overlap_manager_element(driver).find_elements(By.TAG_NAME, "button"))
+        close_button = next(close_buttons, None)
+    except TimeoutException:
+        logging.info("No popups found for closing...")
+        return
+    if close_button:
+        close_button.click()

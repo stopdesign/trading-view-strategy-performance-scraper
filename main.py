@@ -18,7 +18,7 @@ logging.basicConfig(format='[%(asctime)s.%(msecs)03d][%(levelname)s]:  %(message
 def __get_strategy_performance_stats_for(page: TvChartPage, strategy_script: str, strategy_name: str) -> dict:
     strategy_report = {}
     page.run_strategy(strategy_script) \
-        .extract_strategy_report_to(strategy_report, strategy_name)
+        .extract_strategy_report(strategy_report, strategy_name)
     return strategy_report
 
 
