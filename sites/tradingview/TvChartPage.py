@@ -1,11 +1,10 @@
 import logging
 from time import sleep
-from typing import List, Optional, Union
+from typing import Optional
 
 import pyperclip
 import json
 from selenium.common import StaleElementReferenceException, TimeoutException
-from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -13,10 +12,10 @@ from driver.BaseDriver import BaseDriver
 from model.Symbol import Symbol
 from model.TimeInterval import TimeInterval
 from sites.tradingview.TvBasePage import TvBasePage
-from selenium.webdriver import ActionChains, Keys
+from selenium.webdriver import Keys
 
 from usecase.chartActions import FindChartElements
-from utils import ScraperUtils
+from utils import ScraperUtils, WebDriverKeyEventUtils
 
 
 class TvChartPage(TvBasePage):
@@ -34,10 +33,14 @@ class TvChartPage(TvBasePage):
     def clean_all_overlays(self):
         def __scroll_to_no_candles():
             def __move_to_end_of_candles_to_the_right():
-                send_key_events(self.driver, holding_down_keys=[Keys.COMMAND, Keys.ALT], keys_to_press=[Keys.ARROW_RIGHT])
+                WebDriverKeyEventUtils.send_key_events(self.driver,
+                                                       holding_down_keys=[Keys.COMMAND, Keys.ALT],
+                                                       keys_to_press=[Keys.ARROW_RIGHT])
 
             def __move_chart_further_to_the_right():
-                send_key_events(self.driver, holding_down_keys=[Keys.ALT], keys_to_press=[Keys.ARROW_RIGHT])
+                WebDriverKeyEventUtils.send_key_events(self.driver,
+                                                       holding_down_keys=[Keys.ALT],
+                                                       keys_to_press=[Keys.ARROW_RIGHT])
 
             __move_to_end_of_candles_to_the_right()
             sleep(0.1)
@@ -51,7 +54,7 @@ class TvChartPage(TvBasePage):
             __scroll_to_no_candles()
 
             chart = FindChartElements.find_chart_element(self.driver)
-            ActionChains(self.driver).context_click(chart).perform()
+            WebDriverKeyEventUtils.send_right_click_event(self.driver, chart)
             context_overlay_menu = self.driver.wait_and_get_element(5, By.CLASS_NAME, "context-menu")
             remove_indicators = context_overlay_menu.find_element(By.XPATH,
                                                                   "//span[contains(text(), 'Remove indicators')]")
@@ -110,7 +113,7 @@ class TvChartPage(TvBasePage):
 
         def __clear_content_and_enter_strategy():
             pyperclip.copy(strategy)
-            send_key_event_select_all_and_paste(self.driver)
+            WebDriverKeyEventUtils.send_key_event_select_all_and_paste(self.driver)
 
         def __add_to_chart():
             pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
@@ -153,7 +156,7 @@ class TvChartPage(TvBasePage):
     def change_time_interval_to(self, new_time_interval: TimeInterval):
         chart_page = FindChartElements.find_whole_page_element(self.driver)
         chart_page.send_keys(new_time_interval.value)
-        send_key_event_enter(self.driver)
+        WebDriverKeyEventUtils.send_key_event_enter(self.driver)
         return self
 
     def change_symbol_to(self, symbol: Symbol):
@@ -173,7 +176,7 @@ class TvChartPage(TvBasePage):
             return None
 
         self.__open_search_action_menu_and_click("Change Symbol")
-        send_key_events(self.driver, keys_to_press=[symbol.coin_name])
+        WebDriverKeyEventUtils.send_key_events(self.driver, keys_to_press=[symbol.coin_name])
         desired_symbol_element = __find_symbol()
         if desired_symbol_element is None:
             raise RuntimeError(f"Can't find desired symbol for {symbol}")
@@ -195,7 +198,7 @@ class TvChartPage(TvBasePage):
     def __open_search_action_menu_and_click(self, action_to_select: str):
         chart = FindChartElements.find_chart_element(self.driver)
         chart.click()
-        send_key_events(self.driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["k"])
+        WebDriverKeyEventUtils.send_key_events(self.driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["k"])
         overlay_manager_element = FindChartElements.find_overlap_manager_element(self.driver)
         xpath = "//input[@data-role='search']"
         search_for_action_popup = overlay_manager_element.find_element(By.XPATH, xpath)
@@ -208,31 +211,3 @@ class TvChartPage(TvBasePage):
                 return
         raise RuntimeError(f"No action element found from the search tool or "
                            f"function popup which contains '{action_to_select}'")
-
-
-# <editor-fold desc="Util section">
-def send_key_events(driver: WebDriver, keys_to_press: List[Union[Keys, str]], holding_down_keys: List[Keys] = None):
-    holding_down_keys = [] if holding_down_keys is None else holding_down_keys
-
-    click_action = ActionChains(driver)
-
-    for holding_down_key in holding_down_keys:
-        click_action.key_down(holding_down_key)
-
-    for key_to_press in keys_to_press:
-        click_action.send_keys(key_to_press)
-
-    for holding_down_key in holding_down_keys:
-        click_action.key_up(holding_down_key)
-
-    click_action.perform()
-
-
-def send_key_event_enter(driver: WebDriver):
-    send_key_events(driver, keys_to_press=[Keys.ENTER])
-
-
-def send_key_event_select_all_and_paste(driver: WebDriver):
-    send_key_events(driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["a"])
-    send_key_events(driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["v"])
-# </editor-fold>
