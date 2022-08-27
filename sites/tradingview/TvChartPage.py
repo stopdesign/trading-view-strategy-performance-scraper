@@ -1,9 +1,7 @@
-from typing import Optional
 
 import json
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 
 from driver.BaseDriver import BaseDriver
 from model.Symbol import Symbol
@@ -41,7 +39,7 @@ class TvChartPage(TvBasePage):
         RunStrategy.load_strategy_on_chart(self.driver, strategy_content)
         return self
 
-    def extract_strategy_report_to(self, output: dict, strategy_name: str):
+    def extract_strategy_report(self, output: dict, strategy_name: str):
         stats = RunStrategy.extract_strategy_report(self.driver)
         output[strategy_name] = stats
         return self
