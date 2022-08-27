@@ -1,3 +1,4 @@
+import logging
 from time import sleep
 from typing import List, Optional, Union
 
@@ -14,6 +15,7 @@ from model.TimeInterval import TimeInterval
 from sites.tradingview.TvBasePage import TvBasePage
 from selenium.webdriver import ActionChains, Keys
 
+from usecase.chartActions import FindChartElements
 from utils import ScraperUtils
 
 
@@ -26,7 +28,7 @@ class TvChartPage(TvBasePage):
         self.wait_for_chart_to_appear()
 
     def wait_for_chart_to_appear(self):
-        self.__get_chart_element()
+        FindChartElements.find_chart_element(self.driver)
         return self
 
     def clean_all_overlays(self):
@@ -48,7 +50,7 @@ class TvChartPage(TvBasePage):
         def __clear_overlays_with_right_click():
             __scroll_to_no_candles()
 
-            chart = self.__get_chart_element()
+            chart = FindChartElements.find_chart_element(self.driver)
             ActionChains(self.driver).context_click(chart).perform()
             context_overlay_menu = self.driver.wait_and_get_element(5, By.CLASS_NAME, "context-menu")
             remove_indicators = context_overlay_menu.find_element(By.XPATH,
@@ -75,9 +77,10 @@ class TvChartPage(TvBasePage):
             close_buttons = filter(
                 lambda button: "close-button" in button.get_attribute("class") or
                                "closeButton" in button.get_attribute("class"),
-                self.__get_overlap_manager_element().find_elements(By.TAG_NAME, "button"))
+                FindChartElements.find_overlap_manager_element(self.driver).find_elements(By.TAG_NAME, "button"))
             close_button = next(close_buttons, None)
         except TimeoutException:
+            logging.info("No popups found for closing...")
             return
         if close_button:
             close_button.click()
@@ -148,7 +151,7 @@ class TvChartPage(TvBasePage):
         return self
 
     def change_time_interval_to(self, new_time_interval: TimeInterval):
-        chart_page = self.__get_whole_page_element()
+        chart_page = FindChartElements.find_whole_page_element(self.driver)
         chart_page.send_keys(new_time_interval.value)
         send_key_event_enter(self.driver)
         return self
@@ -178,27 +181,6 @@ class TvChartPage(TvBasePage):
             desired_symbol_element.click()
         return self
 
-    def __get_overlap_manager_element(self) -> WebElement:
-        return self.driver.wait_and_get_element(3, By.ID, "overlap-manager-root")
-
-    def __get_top_toolbar_element_symbol(self) -> WebElement:
-        return self.__get_top_toolbar_elements()[0].find_element(By.ID, "header-toolbar-symbol-search")
-
-    def __get_top_toolbar_element_interval(self) -> WebElement:
-        return self.__get_top_toolbar_elements()[1]
-
-    def __get_top_toolbar_elements(self) -> List[WebElement]:
-        xpath = "//div[@class='layout__area--top']/div[contains(@class, 'toolbar')]" \
-                "//*[@data-is-fake-main-panel='false']//*[contains(@class, 'group')]"
-        toolbars_items = self.driver.wait_and_get_elements(3, By.XPATH, xpath)
-        return toolbars_items
-
-    def __get_chart_element(self):
-        return self.driver.wait_and_get_element(5, By.CLASS_NAME, "chart-widget")
-
-    def __get_whole_page_element(self):
-        return self.driver.wait_and_get_element(5, By.CLASS_NAME, "chart-page")
-
     def __change_full_screen_state_footer(self, should_be_full_screen: bool):
         try:
             xpath = "//button[@data-name='toggle-maximize-button']"
@@ -211,20 +193,22 @@ class TvChartPage(TvBasePage):
         return self
 
     def __open_search_action_menu_and_click(self, action_to_select: str):
-        chart = self.__get_chart_element()
+        chart = FindChartElements.find_chart_element(self.driver)
         chart.click()
         send_key_events(self.driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["k"])
-        xpath = "//div[@id='overlap-manager-root']//input[@data-role='search']"
-        search_for_action_popup = self.driver.wait_and_get_element(3, By.XPATH, xpath)
+        overlay_manager_element = FindChartElements.find_overlap_manager_element(self.driver)
+        xpath = "//input[@data-role='search']"
+        search_for_action_popup = overlay_manager_element.find_element(By.XPATH, xpath)
         search_for_action_popup.send_keys(action_to_select)
-        xpath = f"//div[@id='overlap-manager-root']//table//tr//span"
-        action_elements = self.driver.wait_and_get_elements(3, By.XPATH, xpath)
+        xpath = f"//table//tr//span"
+        action_elements = overlay_manager_element.find_elements(By.XPATH, xpath)
         for action_element in action_elements:
             if action_to_select.lower() in action_element.text.lower():
                 action_element.click()
                 return
         raise RuntimeError(f"No action element found from the search tool or "
                            f"function popup which contains '{action_to_select}'")
+
 
 # <editor-fold desc="Util section">
 def send_key_events(driver: WebDriver, keys_to_press: List[Union[Keys, str]], holding_down_keys: List[Keys] = None):
