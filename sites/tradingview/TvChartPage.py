@@ -53,28 +53,10 @@ class TvChartPage(TvBasePage):
         return self
 
     def change_symbol_to(self, symbol: Symbol):
-        def __find_symbol() -> Optional[WebElement]:
-            xpath_symbol_rows = "//div[@id='overlap-manager-root']//*[contains(@class,'dialog')]" \
-                                "//*[contains(@class, 'itemRow')]"
-            try:
-                found_symbol_rows = self.driver.wait_and_get_elements(5, By.XPATH, xpath_symbol_rows)
-            except TimeoutException:
-                raise RuntimeError(f"No symbols returned from TradingView for symbol {symbol}")
-
-            for found_symbol in found_symbol_rows:
-                symbol_name = found_symbol.find_element(By.XPATH, "//div[@data-name='list-item-title']")
-                symbol_broker = found_symbol.find_element(By.XPATH, "//div[contains(@class,'exchangeName')]")
-                if symbol_name.text == symbol.coin_name and symbol_broker.text == symbol.broker_name:
-                    return symbol_name
-            return None
-
         SearchShortcutAction.change_symbol(self.driver)
         WebDriverKeyEventUtils.send_key_events(self.driver, keys_to_press=[symbol.coin_name])
-        desired_symbol_element = __find_symbol()
-        if desired_symbol_element is None:
-            raise RuntimeError(f"Can't find desired symbol for {symbol}")
-        else:
-            desired_symbol_element.click()
+        desired_symbol_element = FindChartElements.find_new_search_symbol_matching(symbol, self.driver)
+        desired_symbol_element.click()
         return self
 
     def __change_full_screen_state_footer(self, should_be_full_screen: bool):
