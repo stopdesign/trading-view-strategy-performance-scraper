@@ -29,31 +29,13 @@ class TvChartPage(TvBasePage):
         self.__get_chart_element()
         return self
 
-    # def extract_data(self) -> DataFrame:
-    #     self.driver.wait_and_get_element(5, By.CLASS_NAME, "tv-data-table")
-    #     table_content = ScraperUtils.extract_tv_table_unwanted_info(self.driver)
-    #     table_content = DataFrameUtils.remove_percentage_values_from(table_content)
-    #     return table_content
-
     def clean_all_overlays(self):
-        # def __is_overlay_on_screen(source: str) -> bool:
-        #     soup = BeautifulSoup(source, "lxml")
-        #     overlays = soup.find_all("div", {"data-name": "legend-source-item"})
-        #     print(f"Overlays count: {len(overlays)}")
-        #     return len(overlays) > 0
         def __scroll_to_no_candles():
             def __move_to_end_of_candles_to_the_right():
                 send_key_events(self.driver, holding_down_keys=[Keys.COMMAND, Keys.ALT], keys_to_press=[Keys.ARROW_RIGHT])
-                # ActionChains(self.driver) \
-                #     .key_down(Keys.COMMAND).key_down(Keys.ALT).send_keys(Keys.ARROW_RIGHT) \
-                #     .key_up(Keys.ALT).key_up(Keys.COMMAND) \
-                #     .perform()
 
             def __move_chart_further_to_the_right():
                 send_key_events(self.driver, holding_down_keys=[Keys.ALT], keys_to_press=[Keys.ARROW_RIGHT])
-                # ActionChains(self.driver) \
-                #     .key_down(Keys.ALT).send_keys(Keys.ARROW_RIGHT).key_up(Keys.ALT) \
-                #     .perform()
 
             __move_to_end_of_candles_to_the_right()
             sleep(0.1)
@@ -95,7 +77,7 @@ class TvChartPage(TvBasePage):
                                "closeButton" in button.get_attribute("class"),
                 self.__get_overlap_manager_element().find_elements(By.TAG_NAME, "button"))
             close_button = next(close_buttons, None)
-        except TimeoutException as e:
+        except TimeoutException:
             return
         if close_button:
             close_button.click()
@@ -124,16 +106,8 @@ class TvChartPage(TvBasePage):
             indicator_type_script.click()
 
         def __clear_content_and_enter_strategy():
-            # editor_window = self.driver.wait_and_get_element(3, By.CLASS_NAME, "ace_content")
-            # editor_window.click()
-            print()
             pyperclip.copy(strategy)
             send_key_event_select_all_and_paste(self.driver)
-            # ActionChains(self.driver) \
-            #     .key_down(Keys.COMMAND).send_keys("a").key_up(Keys.COMMAND) \
-            #     .send_keys(Keys.DELETE) \
-            #     .key_down(Keys.COMMAND).send_keys("v").key_up(Keys.COMMAND) \
-            #     .perform()
 
         def __add_to_chart():
             pine_editor_tabs = self.driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
@@ -144,7 +118,6 @@ class TvChartPage(TvBasePage):
         __clear_content_and_enter_strategy()
         __add_to_chart()
         # self.__change_full_screen_state_footer(True)
-        print()
 
     def extract_strategy_report_to(self, output: dict, strategy_name: str):
         def __read_strategy_report_summary() -> dict:
@@ -158,8 +131,6 @@ class TvChartPage(TvBasePage):
                 float_number = ScraperUtils.extract_number_only_from(number.text)
                 return float_number
 
-            # report_data_headline = self.driver.wait_and_get_element(5, By.CLASS_NAME, "report-data")
-            # report_data_headline_columns = report_data_headline.find_elements(By.CLASS_NAME, "data-item")
             xpath = "//div[@class='report-data']//div[@class='data-item']"
             report_data_headline_columns = self.driver.wait_and_get_elements(5, By.XPATH, xpath)
             return {
@@ -177,11 +148,6 @@ class TvChartPage(TvBasePage):
         return self
 
     def change_time_interval_to(self, new_time_interval: TimeInterval):
-        def __get_time_interval_element_for(time_interval: TimeInterval) -> WebElement:
-            xpath = f"//div[@id='overlap-manager-root']//*[contains(@class,'dropdown')]" \
-                    f"//*[@data-value='{time_interval.value}']"
-            return self.driver.wait_and_get_element(3, By.XPATH, xpath)
-
         chart_page = self.__get_whole_page_element()
         chart_page.send_keys(new_time_interval.value)
         send_key_event_enter(self.driver)
@@ -205,7 +171,6 @@ class TvChartPage(TvBasePage):
 
         self.__open_search_action_menu_and_click("Change Symbol")
         send_key_events(self.driver, keys_to_press=[symbol.coin_name])
-        # send_key_event_enter(self.driver)
         desired_symbol_element = __find_symbol()
         if desired_symbol_element is None:
             raise RuntimeError(f"Can't find desired symbol for {symbol}")
