@@ -14,7 +14,7 @@ from model.TimeInterval import TimeInterval
 from sites.tradingview.TvBasePage import TvBasePage
 from selenium.webdriver import Keys
 
-from usecase.chartActions import FindChartElements
+from usecase.chartActions import FindChartElements, SearchShortcutAction
 from utils import ScraperUtils, WebDriverKeyEventUtils
 
 
@@ -67,7 +67,7 @@ class TvChartPage(TvBasePage):
                 pass
 
         def __clear_overlays_with_shortcuts():
-            self.__open_search_action_menu_and_click("Remove Indicators")
+            SearchShortcutAction.remove_indicators()
 
         self.check_and_close_popups()
         self.__change_full_screen_state_footer(False)
@@ -175,7 +175,7 @@ class TvChartPage(TvBasePage):
                     return symbol_name
             return None
 
-        self.__open_search_action_menu_and_click("Change Symbol")
+        SearchShortcutAction.change_symbol(self.driver)
         WebDriverKeyEventUtils.send_key_events(self.driver, keys_to_press=[symbol.coin_name])
         desired_symbol_element = __find_symbol()
         if desired_symbol_element is None:
@@ -194,20 +194,3 @@ class TvChartPage(TvBasePage):
         if is_maximized != should_be_full_screen:
             maximize_button.click()
         return self
-
-    def __open_search_action_menu_and_click(self, action_to_select: str):
-        chart = FindChartElements.find_chart_element(self.driver)
-        chart.click()
-        WebDriverKeyEventUtils.send_key_events(self.driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["k"])
-        overlay_manager_element = FindChartElements.find_overlap_manager_element(self.driver)
-        xpath = "//input[@data-role='search']"
-        search_for_action_popup = overlay_manager_element.find_element(By.XPATH, xpath)
-        search_for_action_popup.send_keys(action_to_select)
-        xpath = f"//table//tr//span"
-        action_elements = overlay_manager_element.find_elements(By.XPATH, xpath)
-        for action_element in action_elements:
-            if action_to_select.lower() in action_element.text.lower():
-                action_element.click()
-                return
-        raise RuntimeError(f"No action element found from the search tool or "
-                           f"function popup which contains '{action_to_select}'")
