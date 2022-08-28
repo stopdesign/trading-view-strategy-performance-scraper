@@ -40,7 +40,7 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
                         __add_strategy_report_to(performance_report, performance_stats)
                         logging.info(
                             f"Added report for {symbol.coin_name} and interval {interval.value}: {performance_stats}")
-                chart_page.clean_all_overlays()
+            chart_page.clean_all_overlays()
 
 
 def login(driver: ScraperDriver) -> TvChartPage:

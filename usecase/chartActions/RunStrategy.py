@@ -1,5 +1,6 @@
 import json
 from time import sleep
+from typing import List
 
 import pyperclip
 from selenium.common import TimeoutException
@@ -54,29 +55,37 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
 
 def extract_strategy_report(driver: BaseDriver) -> dict:
     def __get_first_line_number_from(web_element: WebElement) -> float:
-        number = web_element.find_element(By.TAG_NAME, "strong")
-        float_number = ScraperUtils.extract_number_only_from(number.text)
-        return float_number
+        try:
+            number = web_element.find_element(By.TAG_NAME, "strong")
+            float_number = ScraperUtils.extract_number_only_from(number.text)
+            return float_number
+        except Exception as e:
+            return -1
 
     def __get_second_line_number_from(web_element: WebElement) -> float:
-        number = web_element.find_element(By.CLASS_NAME, "additional_percent_value")
-        float_number = ScraperUtils.extract_number_only_from(number.text)
-        return float_number
-
-    try:
-        sleep(2)
+        try:
+            number = web_element.find_element(By.CLASS_NAME, "additional_percent_value")
+            float_number = ScraperUtils.extract_number_only_from(number.text)
+            return float_number
+        except Exception as e:
+            return -1
+    
+    def __get_columns_with_data() -> List[WebElement]:
         xpath = "//div[@class='report-data']//div[@class='data-item']"
-        report_data_headline_columns = driver.wait_and_get_elements(1, By.XPATH, xpath)
+        return driver.wait_and_get_elements(1, By.XPATH, xpath)
+    try:
+        sleep(5)
+        __get_columns_with_data()  # await for them to show
     except TimeoutException:
         return {"noData": -1}
 
     return {
-        "netProfit": __get_second_line_number_from(report_data_headline_columns[0]),
-        "totalTrades": __get_first_line_number_from(report_data_headline_columns[1]),
-        "profitable": __get_first_line_number_from(report_data_headline_columns[2]),
-        "profitFactor": __get_first_line_number_from(report_data_headline_columns[3]),
-        "maxDrawdown": __get_second_line_number_from(report_data_headline_columns[4]),
-        "avgTrade": __get_second_line_number_from(report_data_headline_columns[5]),
-        "avgBarsInTrade": __get_first_line_number_from(report_data_headline_columns[6]),
+        "netProfit": __get_second_line_number_from(__get_columns_with_data()[0]),
+        "totalTrades": __get_first_line_number_from(__get_columns_with_data()[1]),
+        "profitable": __get_first_line_number_from(__get_columns_with_data()[2]),
+        "profitFactor": __get_first_line_number_from(__get_columns_with_data()[3]),
+        "maxDrawdown": __get_second_line_number_from(__get_columns_with_data()[4]),
+        "avgTrade": __get_second_line_number_from(__get_columns_with_data()[5]),
+        "avgBarsInTrade": __get_first_line_number_from(__get_columns_with_data()[6]),
     }
 
