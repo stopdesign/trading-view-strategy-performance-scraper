@@ -25,24 +25,25 @@ class TvChartPage(TvBasePage):
         return self
 
     def clean_all_overlays(self):
-        self.check_and_close_popups()
-        self.__change_full_screen_state_footer(False)
+        # self.check_and_close_popups()
+
+        # self.__change_full_screen_state_footer(False)
         # __clear_overlays_with_right_click()
+
         SearchShortcutAction.remove_indicators(self.driver)
         return self
 
     def check_and_close_popups(self):
         FindChartElements.check_and_close_popups(self.driver)
 
-    def run_strategy(self, strategy_content: str):
+    def add_strategy_to_chart(self, strategy_content: str):
         self.check_and_close_popups()
         RunStrategy.load_strategy_on_chart(self.driver, strategy_content)
         return self
 
-    def extract_strategy_report(self, output: dict, strategy_name: str):
+    def extract_strategy_report(self) -> dict:
         stats = RunStrategy.extract_strategy_report(self.driver)
-        output[strategy_name] = stats
-        return self
+        return stats
 
     def change_time_interval_to(self, new_time_interval: TimeInterval):
         chart_page = FindChartElements.find_whole_page_element(self.driver)

@@ -1,6 +1,7 @@
 import json
 
 import pyperclip
+from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -18,9 +19,19 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
         if is_footer_window_minimized:
             visibility_footer_window_btn.click()
             FindChartElements.change_full_screen_state_footer(driver, False)
-        footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]").click()
+        footer_tabs = driver.wait_and_get_element(5, By.ID, "footer-chart-panel")
+        try:
+            pinescript_editor_window = driver.wait_and_get_element(1, By.CLASS_NAME, "tv-script-editor-container")
+            is_pine_editor_tab_visible = ScraperUtils.extract_number_only_from(
+                pinescript_editor_window.get_attribute("style")) > 0
+            if not is_pine_editor_tab_visible:
+                footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]").click()
+        except TimeoutException:
+            footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]").click()
+
         pine_editor_tabs = driver.wait_and_get_element(5, By.ID, "tv-script-pine-editor-header-root")
         pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='open-script']").click()
+
         indicator_type_script = driver.wait_and_get_element(5, By.XPATH, "//div[@data-name='menu-inner']") \
             .find_element(By.XPATH, "//span[contains(text(), 'Indicator')]")
         indicator_type_script.click()
@@ -33,8 +44,6 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
         pine_editor_tabs = driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
         pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='add-script-to-chart']").click()
 
-    footer_tabs = driver.wait_and_get_element(5, By.ID, "footer-chart-panel")
-    
     FindChartElements.check_and_close_popups(driver)
     __open_editor_editor_window()
     __clear_content_and_enter_strategy()
