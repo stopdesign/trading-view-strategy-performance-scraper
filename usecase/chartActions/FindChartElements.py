@@ -8,6 +8,7 @@ from selenium.webdriver.remote.webelement import WebElement
 
 from driver.BaseDriver import BaseDriver
 from model.Symbol import Symbol
+from utils import WebDriverKeyEventUtils
 
 
 def find_overlap_manager_element(driver: BaseDriver) -> WebElement:
@@ -62,17 +63,24 @@ def check_and_close_popups(driver: BaseDriver):
         close_button.click()
 
 
-def find_new_search_symbol_matching(symbol: Symbol, driver: BaseDriver) -> WebElement:
+def find_new_search_symbol_matching(symbol: Symbol, driver: BaseDriver, trial_attempts: int = 3) -> WebElement:
     xpath_symbol_rows = "//div[@id='overlap-manager-root']//*[contains(@class,'dialog')]" \
                         "//*[contains(@class, 'itemRow')]"
-    try:
-        found_symbol_rows = driver.wait_and_get_elements(5, By.XPATH, xpath_symbol_rows)
-    except TimeoutException:
-        raise RuntimeError(f"No symbols returned from TradingView for symbol {symbol}")
+    should_fail_attempt = trial_attempts + 1
+    for i in range(0, should_fail_attempt):
+        try:
+            found_symbol_rows = driver.wait_and_get_elements(5, By.XPATH, xpath_symbol_rows)
+            for found_symbol in found_symbol_rows:
+                symbol_name = found_symbol.find_element(By.XPATH, "//div[@data-name='list-item-title']")
+                symbol_broker = found_symbol.find_element(By.XPATH, "//div[contains(@class,'exchangeName')]")
+                if symbol_name.text == symbol.coin_name and symbol_broker.text == symbol.broker_name:
+                    return symbol_name
+            raise RuntimeError(f"Can't find desired symbol for {symbol}")
+        except TimeoutException:
+            if i < should_fail_attempt:
+                logging.info(f"Failed attempt number {i+1} to select symbol {symbol}... Trying again")
+                WebDriverKeyEventUtils.send_key_event_escape(driver)
+            else:
+                raise RuntimeError(f"No symbols returned from TradingView for symbol {symbol}")
 
-    for found_symbol in found_symbol_rows:
-        symbol_name = found_symbol.find_element(By.XPATH, "//div[@data-name='list-item-title']")
-        symbol_broker = found_symbol.find_element(By.XPATH, "//div[contains(@class,'exchangeName')]")
-        if symbol_name.text == symbol.coin_name and symbol_broker.text == symbol.broker_name:
-            return symbol_name
-    raise RuntimeError(f"Can't find desired symbol for {symbol}")
+
