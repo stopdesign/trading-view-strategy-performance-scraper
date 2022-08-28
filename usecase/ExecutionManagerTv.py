@@ -32,7 +32,7 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
         with TimeUtils.measure_time("Obtaining stats for strategy " + strategy.name + " took {}."):
             chart_page.add_strategy_to_chart(strategy.script)
             for symbol in execution_config.symbols:
-                chart_page.change_symbol_to(symbol)
+                chart_page.change_symbol_to(symbol).remove_possible_advert_overlay()
                 with TimeUtils.measure_time("Obtaining stats for symbol " + symbol.coin_name + " took {}."):
                     for interval in execution_config.intervals:
                         chart_page.change_time_interval_to(interval)

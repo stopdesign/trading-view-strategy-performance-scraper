@@ -6,6 +6,7 @@ from driver.ScraperDriver import ScraperDriver
 from network import NotifierClient
 from usecase import SendDataUseCase, ProvideExecutionConfig, ExecutionManagerTv
 from utils import TimeUtils
+from utils.ScraperUtils import extract_number_only_from
 
 logging.basicConfig(format='[%(asctime)s.%(msecs)03d][%(levelname)s]:  %(message)s',
                     datefmt='%Y-%m-%dT%H:%M:%S', level=logging.INFO)
