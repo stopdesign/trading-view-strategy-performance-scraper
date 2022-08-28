@@ -7,8 +7,7 @@ from sites.tradingview.TvHomePage import TvHomePage
 from utils import TimeUtils
 
 
-def obtain_strategy_performance_data_for(driver: ScraperDriver,
-                                         chart_page: TvChartPage,
+def obtain_strategy_performance_data_for(chart_page: TvChartPage,
                                          execution_config: ExecutionConfig) -> dict:
     def __add_strategy_report_to(output: dict, report: dict):
         strategy_name = strategy.name
@@ -22,6 +21,11 @@ def obtain_strategy_performance_data_for(driver: ScraperDriver,
             output[strategy_name][coin_name] = {}
 
         output[strategy_name][coin_name][interval_value] = report
+
+    logging.info(f"Obtaining performance data for "
+                 f"{len(execution_config.strategies)} strategies, "
+                 f"{len(execution_config.symbols)} symbols and "
+                 f"{len(execution_config.intervals)} time intervals.")
 
     performance_report = {}
     for strategy in execution_config.strategies:

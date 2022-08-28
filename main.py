@@ -14,7 +14,7 @@ logging.basicConfig(format='[%(asctime)s.%(msecs)03d][%(levelname)s]:  %(message
 def obtain_strategies_performance(driver: ScraperDriver) -> dict:
     execution_config = ProvideExecutionConfig.for_all_perpetual_binance_symbols()
     chart_page = ExecutionManagerTv.login(driver)
-    strategies_report = ExecutionManagerTv.obtain_strategy_performance_data_for(driver, chart_page, execution_config)
+    strategies_report = ExecutionManagerTv.obtain_strategy_performance_data_for(chart_page, execution_config)
     return strategies_report
 
 
