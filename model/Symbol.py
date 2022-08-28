@@ -14,12 +14,6 @@ class Symbol:
     def broker_name(self) -> str:
         return self._broker_name
 
-    def to_json(self) -> dict:
-        return {
-            "symbol": self.coin_name,
-            "broker": self.broker_name
-        }
-
     def __repr__(self):
         return f"Symbol(coin={self.coin_name}, broker={self.broker_name})"
 

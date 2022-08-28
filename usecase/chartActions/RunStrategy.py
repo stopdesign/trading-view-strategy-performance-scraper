@@ -62,6 +62,12 @@ def extract_strategy_report(driver: BaseDriver) -> dict:
         float_number = ScraperUtils.extract_number_only_from(number.text)
         return float_number
 
+    try:
+        driver.wait_and_get_element(3, By.CLASS_NAME, "backtesting-empty-stub")
+        return {"noData": -1}
+    except TimeoutException:
+        pass
+
     xpath = "//div[@class='report-data']//div[@class='data-item']"
     report_data_headline_columns = driver.wait_and_get_elements(5, By.XPATH, xpath)
     return {
