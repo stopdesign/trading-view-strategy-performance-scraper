@@ -1,11 +1,9 @@
 import json
 from time import sleep
-from typing import List
 
 import pyperclip
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 
 from driver.BaseDriver import BaseDriver
 from usecase.chartActions import FindChartElements
@@ -54,38 +52,36 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
 
 
 def extract_strategy_report(driver: BaseDriver) -> dict:
-    def __get_first_line_number_from(web_element: WebElement) -> float:
+    def __get_first_line_number_from(index: int) -> float:
         try:
-            number = web_element.find_element(By.TAG_NAME, "strong")
+            number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index+1}]//strong")
             float_number = ScraperUtils.extract_number_only_from(number.text)
             return float_number
         except Exception as e:
-            return -1
+            return -1000000000
 
-    def __get_second_line_number_from(web_element: WebElement) -> float:
+    def __get_second_line_number_from(index: int) -> float:
         try:
-            number = web_element.find_element(By.CLASS_NAME, "additional_percent_value")
+            number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index + 1}]//span")
             float_number = ScraperUtils.extract_number_only_from(number.text)
             return float_number
         except Exception as e:
-            return -1
-    
-    def __get_columns_with_data() -> List[WebElement]:
-        xpath = "//div[@class='report-data']//div[@class='data-item']"
-        return driver.wait_and_get_elements(1, By.XPATH, xpath)
+            return -1000000000
+
     try:
-        sleep(5)
-        __get_columns_with_data()  # await for them to show
+        sleep(2)
+        xpath = "//div[@class='report-data']//div[@class='data-item']"
+        driver.wait_and_get_elements(1, By.XPATH, xpath)  # await for them to show
     except TimeoutException:
         return {"noData": -1}
 
     return {
-        "netProfit": __get_second_line_number_from(__get_columns_with_data()[0]),
-        "totalTrades": __get_first_line_number_from(__get_columns_with_data()[1]),
-        "profitable": __get_first_line_number_from(__get_columns_with_data()[2]),
-        "profitFactor": __get_first_line_number_from(__get_columns_with_data()[3]),
-        "maxDrawdown": __get_second_line_number_from(__get_columns_with_data()[4]),
-        "avgTrade": __get_second_line_number_from(__get_columns_with_data()[5]),
-        "avgBarsInTrade": __get_first_line_number_from(__get_columns_with_data()[6]),
+        "netProfit": __get_second_line_number_from(0),
+        "totalTrades": __get_first_line_number_from(1),
+        "profitable": __get_first_line_number_from(2),
+        "profitFactor": __get_first_line_number_from(3),
+        "maxDrawdown": __get_second_line_number_from(4),
+        "avgTrade": __get_second_line_number_from(5),
+        "avgBarsInTrade": __get_first_line_number_from(6),
     }
 
