@@ -1,4 +1,5 @@
 import json
+from time import sleep
 
 import pyperclip
 from selenium.common import TimeoutException
@@ -63,13 +64,12 @@ def extract_strategy_report(driver: BaseDriver) -> dict:
         return float_number
 
     try:
-        driver.wait_and_get_element(3, By.CLASS_NAME, "backtesting-empty-stub")
-        return {"noData": -1}
+        sleep(2)
+        xpath = "//div[@class='report-data']//div[@class='data-item']"
+        report_data_headline_columns = driver.wait_and_get_elements(1, By.XPATH, xpath)
     except TimeoutException:
-        pass
+        return {"noData": -1}
 
-    xpath = "//div[@class='report-data']//div[@class='data-item']"
-    report_data_headline_columns = driver.wait_and_get_elements(5, By.XPATH, xpath)
     return {
         "netProfit": __get_second_line_number_from(report_data_headline_columns[0]),
         "totalTrades": __get_first_line_number_from(report_data_headline_columns[1]),
