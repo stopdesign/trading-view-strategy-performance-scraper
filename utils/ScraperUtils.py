@@ -7,16 +7,23 @@ from pandas import DataFrame
 
 def extract_tv_table_unwanted_info(driver) -> DataFrame:
     html_raw = driver.page_source
-    html_content = re.sub(r'<span class="tv-screener__description.*span>', "", html_raw)  # replaces the 2nd row description on each ticker
-    html_content = re.sub(r'<div class="js-field-total(\s|\d|\w|"|>|-|_|\.)*</div>', "", html_content)  # replaces the number of found tickers in the header
-    html_content = re.sub(r'<span class="js-field-value(\s|\d|\w|"|>|-|_|\.)*</span>', "", html_content)  # replaces the custom filtered values on each column as second row
+    html_content = re.sub(r'<span class="tv-screener__description.*span>', "",
+                          html_raw)  # replaces the 2nd row description on each ticker
+    html_content = re.sub(r'<div class="js-field-total(\s|\d|\w|"|>|-|_|\.)*</div>', "",
+                          html_content)  # replaces the number of found tickers in the header
+    html_content = re.sub(r'<span class="js-field-value(\s|\d|\w|"|>|-|_|\.)*</span>', "",
+                          html_content)  # replaces the custom filtered values on each column as second row
     table = extract_head_and_body_from_table(html_content, 1)
     return table
 
 
 def extract_number_only_from(text: str):
     try:
-        return float("".join(re.findall(r"-?\d*?\.?\d+", text)))
+        str_number = "".join(re.findall(r"[−|-]?\d*?\.?\d+", text))
+        if str_number[0] == "−" or str_number[0] == "-":
+            return -float(str_number[1:])
+        else:
+            return float(str_number)
     except:
         return math.nan
 
