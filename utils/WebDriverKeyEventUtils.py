@@ -26,6 +26,10 @@ def send_key_event_enter(driver: WebDriver):
     send_key_events(driver, keys_to_press=[Keys.ENTER])
 
 
+def send_key_event_escape(driver: WebDriver):
+    send_key_events(driver, keys_to_press=[Keys.ESCAPE])
+
+
 def send_key_event_select_all_and_paste(driver: WebDriver):
     send_key_events(driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["a"])
     send_key_events(driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["v"])

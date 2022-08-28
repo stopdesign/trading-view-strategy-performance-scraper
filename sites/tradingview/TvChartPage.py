@@ -1,5 +1,6 @@
-
 import json
+import logging
+
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 
@@ -51,12 +52,21 @@ class TvChartPage(TvBasePage):
         WebDriverKeyEventUtils.send_key_event_enter(self.driver)
         return self
 
-    def change_symbol_to(self, symbol: Symbol):
-        SearchShortcutAction.change_symbol(self.driver)
-        WebDriverKeyEventUtils.send_key_events(self.driver, keys_to_press=[symbol.coin_name])
-        desired_symbol_element = FindChartElements.find_new_search_symbol_matching(symbol, self.driver)
-        desired_symbol_element.click()
-        return self
+    def change_symbol_to(self, symbol: Symbol, trial_attempts: int = 3):
+        should_fail_attempt = trial_attempts + 1
+        for i in range(0, should_fail_attempt):
+            try:
+                SearchShortcutAction.change_symbol(self.driver)
+                WebDriverKeyEventUtils.send_key_events(self.driver, keys_to_press=[symbol.coin_name])
+                desired_symbol_element = FindChartElements.find_new_search_symbol_matching(symbol, self.driver)
+                desired_symbol_element.click()
+                return self
+            except TimeoutException as e:
+                if i < should_fail_attempt:
+                    logging.info(f"Failed attempt number {i+1} to select symbol {symbol}... Trying again")
+                    WebDriverKeyEventUtils.send_key_event_escape(self.driver)
+                else:
+                    raise e
 
     def __change_full_screen_state_footer(self, should_be_full_screen: bool):
         try:

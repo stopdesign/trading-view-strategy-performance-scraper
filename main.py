@@ -22,7 +22,8 @@ def __build_strategies_scripts() -> dict:
 
 def __build_time_frames_and_symbols() -> list:
     default_time_intervals = [TimeInterval.M5, TimeInterval.M15, TimeInterval.M30,
-                              TimeInterval.H1, TimeInterval.H2, TimeInterval.H3, TimeInterval.H4]
+                              TimeInterval.H1, TimeInterval.H2, TimeInterval.H3, TimeInterval.H4,
+                              TimeInterval.D, TimeInterval.W]
     return [
         {
             "symbol": Symbol("BTCUSDTPERP", "BINANCE"),
@@ -69,9 +70,9 @@ def obtain_data(driver: ScraperDriver) -> dict:
         for time_frames_and_symbol in time_frames_and_symbols:
             symbol = time_frames_and_symbol["symbol"]
             intervals = time_frames_and_symbol["intervals"]
+            page.change_symbol_to(symbol)
             for interval in intervals:
-                page.change_time_interval_to(interval) \
-                    .change_symbol_to(symbol)
+                page.change_time_interval_to(interval)
                 performance_stats = page.extract_strategy_report()
                 __add_strategy_report_to(strategies_report, strategy_name, symbol, interval, performance_stats)
                 logging.info(f"Added report for {symbol.coin_name} and interval {interval.value}: {performance_stats}")
