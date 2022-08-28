@@ -10,18 +10,18 @@ class TvBasePage(BasePage):
     def __init__(self, driver: BaseDriver):
         super().__init__(driver)
 
-    def accept_cookies(self):
+    def decline_cookies(self):
         try:
-            self.__accept_cookies()
+            self.__decline_cookies()
         finally:
             return self
         # return self
 
-    def __accept_cookies(self):
-        # accept_btn = self.driver.wait_and_get_element(5, By.ID, "acceptCookies")
-        xpath = '//span[contains(text(), "Accept all")]'
-        accept_btn = self.driver.wait_and_get_element(5, By.XPATH, xpath)
-        accept_btn.click()
+    def __decline_cookies(self):
+        xpath = "//div[@data-role='toast-container']//span[text()='Manage preferences']"
+        self.driver.wait_and_get_element(3, By.XPATH, xpath).click()
+        xpath = "//div[@id='overlap-manager-root']//span[text()='Save preferences']"
+        self.driver.wait_and_get_element(3, By.XPATH, xpath).click()
 
     def wait(self, seconds):
         sleep(seconds)

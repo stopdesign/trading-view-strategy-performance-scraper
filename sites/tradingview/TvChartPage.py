@@ -18,7 +18,7 @@ class TvChartPage(TvBasePage):
     def __init__(self, driver: BaseDriver):
         super().__init__(driver)
         self.driver.load_page("https://www.tradingview.com/chart/")
-        self.accept_cookies()
+        self.decline_cookies()
         self.wait_for_chart_to_appear()
 
     def wait_for_chart_to_appear(self):
