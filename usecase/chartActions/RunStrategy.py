@@ -53,7 +53,7 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
     # self.__change_full_screen_state_footer(True)
 
 
-def extract_strategy_report(driver: BaseDriver) -> Optional[Dict]:
+def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
     def __get_first_line_number_from(index: int, fails_for_first_time=False) -> float:
         try:
             number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index + 1}]//strong")
@@ -76,19 +76,32 @@ def extract_strategy_report(driver: BaseDriver) -> Optional[Dict]:
             else:
                 return math.nan
 
+    if __were_trades_made(driver):
+        return {
+            "netProfit": __get_second_line_number_from(0),
+            "totalTrades": __get_first_line_number_from(1),
+            "profitable": __get_first_line_number_from(2),
+            "profitFactor": __get_first_line_number_from(3),
+            "maxDrawdown": __get_second_line_number_from(4),
+            "avgTrade": __get_second_line_number_from(5),
+            "avgBarsInTrade": __get_first_line_number_from(6),
+        }
+    else:
+        return None
+
+
+def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
+    if __were_trades_made(driver):
+        pass
+    else:
+        return None
+
+
+def __were_trades_made(driver: BaseDriver) -> bool:
     try:
         sleep(2)
         xpath = "//div[@class='report-data']//div[@class='data-item']"
         driver.wait_and_get_elements(1, By.XPATH, xpath)  # await for them to show
+        return True
     except TimeoutException:
-        return None
-
-    return {
-        "netProfit": __get_second_line_number_from(0),
-        "totalTrades": __get_first_line_number_from(1),
-        "profitable": __get_first_line_number_from(2),
-        "profitFactor": __get_first_line_number_from(3),
-        "maxDrawdown": __get_second_line_number_from(4),
-        "avgTrade": __get_second_line_number_from(5),
-        "avgBarsInTrade": __get_first_line_number_from(6),
-    }
+        return False

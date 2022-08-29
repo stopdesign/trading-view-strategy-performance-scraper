@@ -43,9 +43,13 @@ class TvChartPage(TvBasePage):
         RunStrategy.load_strategy_on_chart(self.driver, strategy_content)
         return self
 
-    def extract_strategy_report(self) -> Optional[Dict]:
-        stats = RunStrategy.extract_strategy_report(self.driver)
+    def extract_strategy_overview_report(self) -> Optional[Dict]:
+        stats = RunStrategy.extract_strategy_overview(self.driver)
         return stats
+
+    def extract_strategy_trades_report(self) -> Optional[Dict]:
+        trades = RunStrategy.extract_strategy_trades(self.driver)
+        return trades
 
     def change_time_interval_to(self, new_time_interval: TimeInterval):
         chart_page = FindChartElements.find_whole_page_element(self.driver)
