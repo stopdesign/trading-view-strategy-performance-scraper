@@ -37,9 +37,12 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
                     for interval in execution_config.intervals:
                         chart_page.change_time_interval_to(interval)
                         performance_stats = chart_page.extract_strategy_report()
-                        __add_strategy_report_to(performance_report, performance_stats)
-                        logging.info(
-                            f"Added report for {symbol.coin_name} and interval {interval.value}: {performance_stats}")
+                        if performance_stats is not None:
+                            __add_strategy_report_to(performance_report, performance_stats)
+                            logging.info(
+                                f"Added report for {symbol.coin_name} and interval {interval.value}: {performance_stats}")
+                        else:
+                            logging.info(f"No report found for {symbol.coin_name} and interval {interval.value}.")
             chart_page.clean_all_overlays()
     return performance_report
 

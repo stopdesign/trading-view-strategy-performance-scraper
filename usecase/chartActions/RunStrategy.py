@@ -1,6 +1,7 @@
 import json
 import math
 from time import sleep
+from typing import Dict, Optional
 
 import pyperclip
 from selenium.common import TimeoutException
@@ -52,7 +53,7 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
     # self.__change_full_screen_state_footer(True)
 
 
-def extract_strategy_report(driver: BaseDriver) -> dict:
+def extract_strategy_report(driver: BaseDriver) -> Optional[Dict]:
     def __get_first_line_number_from(index: int, fails_for_first_time=False) -> float:
         try:
             number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index + 1}]//strong")
@@ -80,7 +81,7 @@ def extract_strategy_report(driver: BaseDriver) -> dict:
         xpath = "//div[@class='report-data']//div[@class='data-item']"
         driver.wait_and_get_elements(1, By.XPATH, xpath)  # await for them to show
     except TimeoutException:
-        return {"noData": -1}
+        return None
 
     return {
         "netProfit": __get_second_line_number_from(0),
