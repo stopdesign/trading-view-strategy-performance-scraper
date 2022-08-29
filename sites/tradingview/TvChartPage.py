@@ -27,20 +27,27 @@ class TvChartPage(TvBasePage):
         return self
 
     def clean_all_overlays(self):
-        # self.check_and_close_popups()
-
-        # self.__change_full_screen_state_footer(False)
-        # __clear_overlays_with_right_click()
-
         SearchShortcutAction.remove_indicators(self.driver)
         return self
 
     def check_and_close_popups(self):
         FindChartElements.check_and_close_popups(self.driver)
+        return self
 
     def add_strategy_to_chart(self, strategy_content: str):
         self.check_and_close_popups()
         RunStrategy.load_strategy_on_chart(self.driver, strategy_content)
+        return self
+
+    def change_footer_window_full_size(self, should_maximize_it: bool):
+        xpath = "//div[@id='footer-chart-panel']//button[@data-name='toggle-maximize-button']"
+        try:
+            maximize_footer_btn = self.driver.wait_and_get_element(1, By.XPATH, xpath)
+        except TimeoutException:
+            return self
+        is_footer_window_maximized = json.loads(maximize_footer_btn.get_attribute("data-active"))
+        if is_footer_window_maximized != should_maximize_it:
+            maximize_footer_btn.click()
         return self
 
     def extract_strategy_overview_report(self) -> Optional[Dict]:
@@ -52,8 +59,8 @@ class TvChartPage(TvBasePage):
         return trades
 
     def change_time_interval_to(self, new_time_interval: TimeInterval):
-        chart_page = FindChartElements.find_whole_page_element(self.driver)
-        chart_page.send_keys(new_time_interval.value)
+        SearchShortcutAction.change_interval(self.driver)
+        WebDriverKeyEventUtils.send_key_events(self.driver, keys_to_press=[new_time_interval.value])
         WebDriverKeyEventUtils.send_key_event_enter(self.driver)
         return self
 
@@ -86,14 +93,3 @@ class TvChartPage(TvBasePage):
             pass
         finally:
             return self
-
-    def __change_full_screen_state_footer(self, should_be_full_screen: bool):
-        try:
-            xpath = "//button[@data-name='toggle-maximize-button']"
-            maximize_button = self.driver.wait_and_get_element(3, By.XPATH, xpath)
-        except TimeoutException:
-            return self
-        is_maximized = json.loads(maximize_button.get_attribute("data-active"))
-        if is_maximized != should_be_full_screen:
-            maximize_button.click()
-        return self

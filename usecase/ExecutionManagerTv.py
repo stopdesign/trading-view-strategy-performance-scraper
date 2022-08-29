@@ -30,17 +30,19 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
     performance_report = {}
     for strategy in execution_config.strategies:
         with TimeUtils.measure_time("Obtaining stats for strategy " + strategy.name + " took {}."):
-            chart_page.add_strategy_to_chart(strategy.script)
+            chart_page.add_strategy_to_chart(strategy.script) \
+                    .change_footer_window_full_size(should_maximize_it=True)
             for symbol in execution_config.symbols:
                 chart_page.change_symbol_to(symbol).remove_possible_advert_overlay()
                 with TimeUtils.measure_time("Obtaining stats for symbol " + symbol.coin_name + " took {}."):
                     for interval in execution_config.intervals:
                         chart_page.change_time_interval_to(interval)
-                        performance_stats = chart_page.extract_strategy_overview_report()
-                        if performance_stats is not None:
-                            __add_strategy_report_to(performance_report, performance_stats)
+                        strategy_overview_stats = chart_page.extract_strategy_overview_report()
+                        strategy_trades_stats = chart_page.extract_strategy_trades_report()
+                        if strategy_overview_stats is not None:
+                            __add_strategy_report_to(performance_report, strategy_overview_stats)
                             logging.info(
-                                f"Added report for {symbol.coin_name} and interval {interval.value}: {performance_stats}")
+                                f"Added report for {symbol.coin_name} and interval {interval.value}: {strategy_overview_stats}")
                         else:
                             logging.info(f"No report found for {symbol.coin_name} and interval {interval.value}.")
             chart_page.clean_all_overlays()

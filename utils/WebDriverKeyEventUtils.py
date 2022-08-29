@@ -26,6 +26,14 @@ def send_key_event_enter(driver: WebDriver):
     send_key_events(driver, keys_to_press=[Keys.ENTER])
 
 
+def send_key_event_page_down(driver: WebDriver):
+    send_key_events(driver, keys_to_press=[Keys.PAGE_DOWN])
+
+
+def send_key_event_page_up(driver: WebDriver):
+    send_key_events(driver, keys_to_press=[Keys.PAGE_UP])
+
+
 def send_key_event_escape(driver: WebDriver):
     send_key_events(driver, keys_to_press=[Keys.ESCAPE])
 

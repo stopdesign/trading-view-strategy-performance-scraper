@@ -14,9 +14,14 @@ def change_symbol(driver: BaseDriver):
     __open_search_action_menu_and_click(driver, "Change Symbol")
 
 
+def change_interval(driver: BaseDriver):
+    __open_search_action_menu_and_click(driver, "Change Interval")
+
+
 def __open_search_action_menu_and_click(driver: BaseDriver, action_to_select: str):
-    chart = FindChartElements.find_chart_element(driver)
-    chart.click()
+    # TODO check if pine editor is not opened otherwise it is fine
+    # chart = FindChartElements.find_chart_element(driver)
+    # chart.click()
     WebDriverKeyEventUtils.send_key_events(driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["k"])
     overlay_manager_element = FindChartElements.find_overlap_manager_element(driver)
     xpath = "//input[@data-role='search']"

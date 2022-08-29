@@ -1,13 +1,15 @@
 import json
 import math
 from time import sleep
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 import pyperclip
+from bs4 import BeautifulSoup
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 
 from driver.BaseDriver import BaseDriver
+from model.Trade import Trade
 from usecase.chartActions import FindChartElements
 from utils import WebDriverKeyEventUtils, ScraperUtils
 
@@ -77,6 +79,7 @@ def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
                 return math.nan
 
     if __were_trades_made(driver):
+        __select_strategy_overview(driver)
         return {
             "netProfit": __get_second_line_number_from(0),
             "totalTrades": __get_first_line_number_from(1),
@@ -90,18 +93,39 @@ def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
         return None
 
 
-def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
+def extract_strategy_trades(driver: BaseDriver) -> Optional[List[Trade]]:
+    def __extract_table_content() -> List:
+        xpath = "//div[@class='reports-content']//table"
+        table = driver.wait_and_get_element(3, By.XPATH, xpath)
+        xpath = "//div[@class='reports-content']//table//tbody"
+        rows = driver.wait_and_get_elements(3, By.XPATH, xpath)
+        bs = BeautifulSoup(table.get_attribute("outerHTML"), "lxml")
+        print()
+
     if __were_trades_made(driver):
-        pass
+        __select_strategy_list_of_trades(driver)
+        __extract_table_content()
+        print()
     else:
         return None
 
 
 def __were_trades_made(driver: BaseDriver) -> bool:
     try:
+        __select_strategy_overview(driver)
         sleep(2)
         xpath = "//div[@class='report-data']//div[@class='data-item']"
         driver.wait_and_get_elements(1, By.XPATH, xpath)  # await for them to show
         return True
-    except TimeoutException:
+    except TimeoutException as e:
         return False
+
+
+def __select_strategy_overview(driver: BaseDriver):
+    xpath = "//div[@id='bottom-area']//div[contains(@class,'tabSwitcherContainer')]//button[text()='Overview']"
+    driver.wait_and_get_element(3, By.XPATH, xpath).click()
+
+
+def __select_strategy_list_of_trades(driver: BaseDriver):
+    xpath = "//div[@id='bottom-area']//div[contains(@class,'tabSwitcherContainer')]//button[text()='List of Trades']"
+    driver.wait_and_get_element(3, By.XPATH, xpath).click()
