@@ -1,3 +1,4 @@
+import datetime
 import json
 import math
 from time import sleep
@@ -94,18 +95,45 @@ def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
 
 
 def extract_strategy_trades(driver: BaseDriver) -> Optional[List[Trade]]:
-    def __extract_table_content() -> List:
-        xpath = "//div[@class='reports-content']//table"
+    def __extract_table_content_to(output: dict):
+        xpath = "//div[contains(@class,'reports-content')]//table"
         table = driver.wait_and_get_element(3, By.XPATH, xpath)
-        xpath = "//div[@class='reports-content']//table//tbody"
-        rows = driver.wait_and_get_elements(3, By.XPATH, xpath)
         bs = BeautifulSoup(table.get_attribute("outerHTML"), "lxml")
+
+        for row in bs.find_all("tbody"):
+            trade_exit_row, trade_entry_row = row.find_all("tr")
+            trade_exit_columns = trade_exit_row.find_all("td")
+            # trade_entry_columns = trade_entry_row.find_all("td")
+
+            profit = ScraperUtils.extract_number_only_from(
+                trade_exit_columns[6].find("div", attrs={"class": "additional_percent_value"}).text)
+            drawdown = ScraperUtils.extract_number_only_from(
+                trade_exit_columns[9].find("div", attrs={"class": "additional_percent_value"}).text)
+            date = datetime.datetime.strptime(trade_exit_columns[3].text, "%Y-%m-%d %H:%M")
+            trade_number = int(ScraperUtils.extract_number_only_from(trade_exit_columns[0].text))
+            output[trade_number] = {
+                "date": date,
+                "profit_percentage": profit,
+                "drawdown_percentage": drawdown,
+            }
+
         print()
+
+    def __scroll_down_on_trades():
+        xpath = "//table[@class='reports-content__table-pointer']//tbody"
+        driver.wait_and_get_element(1, By.XPATH, xpath).click()
+        WebDriverKeyEventUtils.send_key_event_page_down(driver)
+        sleep(0.3)
 
     if __were_trades_made(driver):
         __select_strategy_list_of_trades(driver)
-        __extract_table_content()
-        print()
+        trades = {}
+        while 1 not in trades.keys():
+            __extract_table_content_to(trades)
+            __scroll_down_on_trades()
+        trades_list = [Trade(trade_number, info["date"], info["profit_percentage"], info["drawdown_percentage"]) for
+                       trade_number, info in trades.items()]
+        return trades_list
     else:
         return None
 

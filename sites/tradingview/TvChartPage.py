@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
@@ -54,7 +54,7 @@ class TvChartPage(TvBasePage):
         stats = RunStrategy.extract_strategy_overview(self.driver)
         return stats
 
-    def extract_strategy_trades_report(self) -> Optional[Dict]:
+    def extract_strategy_trades_report(self) -> Optional[List]:
         trades = RunStrategy.extract_strategy_trades(self.driver)
         return trades
 

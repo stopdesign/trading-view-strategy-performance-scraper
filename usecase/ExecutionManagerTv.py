@@ -8,8 +8,9 @@ from utils import TimeUtils
 
 
 def obtain_strategy_performance_data_for(chart_page: TvChartPage,
-                                         execution_config: ExecutionConfig) -> dict:
-    def __add_strategy_report_to(output: dict, report: dict):
+                                         execution_config: ExecutionConfig,
+                                         should_add_trades: bool = True) -> dict:
+    def __add_strategy_report_to(output: dict, overview_report: dict, trades_report: list):
         strategy_name = strategy.name
         if strategy.name not in output.keys():
             output[strategy_name] = {"script": strategy.script}
@@ -20,7 +21,10 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
         if coin_name not in output[strategy_name].keys():
             output[strategy_name][coin_name] = {}
 
-        output[strategy_name][coin_name][interval_value] = report
+        report = overview_report
+        if len(trades_report) > 0:
+            report["trades"] = trades_report
+        output[strategy_name][coin_name][interval_value] = overview_report
 
     logging.info(f"Obtaining performance data for "
                  f"{len(execution_config.strategies)} strategies, "
@@ -38,11 +42,12 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
                     for interval in execution_config.intervals:
                         chart_page.change_time_interval_to(interval)
                         strategy_overview_stats = chart_page.extract_strategy_overview_report()
-                        strategy_trades_stats = chart_page.extract_strategy_trades_report()
+                        strategy_trades_stats = chart_page.extract_strategy_trades_report() if should_add_trades else []
                         if strategy_overview_stats is not None:
-                            __add_strategy_report_to(performance_report, strategy_overview_stats)
+                            __add_strategy_report_to(performance_report, strategy_overview_stats, strategy_trades_stats)
                             logging.info(
-                                f"Added report for {symbol.coin_name} and interval {interval.value}: {strategy_overview_stats}")
+                                f"Added report for {symbol.coin_name} and interval {interval.value}: "
+                                f"{strategy_overview_stats}")
                         else:
                             logging.info(f"No report found for {symbol.coin_name} and interval {interval.value}.")
             chart_page.clean_all_overlays()
