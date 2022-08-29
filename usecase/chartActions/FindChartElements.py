@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List, Optional
+from typing import List
 
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
@@ -8,7 +8,6 @@ from selenium.webdriver.remote.webelement import WebElement
 
 from driver.BaseDriver import BaseDriver
 from model.Symbol import Symbol
-from utils import WebDriverKeyEventUtils
 
 
 def find_overlap_manager_element(driver: BaseDriver) -> WebElement:
@@ -31,11 +30,11 @@ def find_top_toolbar_elements(driver: BaseDriver) -> List[WebElement]:
 
 
 def find_chart_element(driver: BaseDriver):
-    return driver.wait_and_get_element(5, By.CLASS_NAME, "chart-widget")
+    return driver.wait_and_get_element(30, By.CLASS_NAME, "chart-widget")
 
 
 def find_whole_page_element(driver: BaseDriver):
-    return driver.wait_and_get_element(5, By.CLASS_NAME, "chart-page")
+    return driver.wait_and_get_element(30, By.CLASS_NAME, "chart-page")
 
 
 def change_full_screen_state_footer(driver: BaseDriver, should_be_full_screen: bool):

@@ -1,4 +1,5 @@
 import json
+import math
 from time import sleep
 
 import pyperclip
@@ -52,21 +53,27 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
 
 
 def extract_strategy_report(driver: BaseDriver) -> dict:
-    def __get_first_line_number_from(index: int) -> float:
+    def __get_first_line_number_from(index: int, fails_for_first_time=False) -> float:
         try:
-            number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index+1}]//strong")
+            number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index + 1}]//strong")
             float_number = ScraperUtils.extract_number_only_from(number.text)
             return float_number
         except Exception as e:
-            return -1000000000
+            if not fails_for_first_time:
+                return __get_first_line_number_from(index, True)
+            else:
+                return math.nan
 
-    def __get_second_line_number_from(index: int) -> float:
+    def __get_second_line_number_from(index: int, fails_for_first_time=False) -> float:
         try:
             number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index + 1}]//span")
             float_number = ScraperUtils.extract_number_only_from(number.text)
             return float_number
         except Exception as e:
-            return -1000000000
+            if not fails_for_first_time:
+                return __get_second_line_number_from(index, True)
+            else:
+                return math.nan
 
     try:
         sleep(2)
@@ -84,4 +91,3 @@ def extract_strategy_report(driver: BaseDriver) -> dict:
         "avgTrade": __get_second_line_number_from(5),
         "avgBarsInTrade": __get_first_line_number_from(6),
     }
-

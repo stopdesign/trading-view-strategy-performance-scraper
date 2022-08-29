@@ -67,6 +67,9 @@ class TvChartPage(TvBasePage):
                     WebDriverKeyEventUtils.send_key_event_escape(self.driver)
                 else:
                     raise e
+            finally:
+                return self
+        return self
 
     def remove_possible_advert_overlay(self):
         try:
@@ -76,7 +79,8 @@ class TvChartPage(TvBasePage):
             self.driver.wait_and_get_element(1, By.XPATH, xpath).click()
         except TimeoutException:
             pass
-        return self
+        finally:
+            return self
 
     def __change_full_screen_state_footer(self, should_be_full_screen: bool):
         try:
