@@ -5,7 +5,7 @@ from time import sleep
 from typing import Dict, Optional, List
 
 import pyperclip
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 
@@ -96,34 +96,59 @@ def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
 
 def extract_strategy_trades(driver: BaseDriver) -> Optional[List[Trade]]:
     def __extract_table_content_to(output: dict):
-        xpath = "//div[contains(@class,'reports-content')]//table"
-        table = driver.wait_and_get_element(3, By.XPATH, xpath)
-        bs = BeautifulSoup(table.get_attribute("outerHTML"), "lxml")
+        def __extract_text_from_tag(tag: Tag) -> Optional[str]:
+            if tag is None:
+                # trade not finished and still opened
+                return None
+            else:
+                return tag.text
+
+        def __extract_table_content(has_failed_once: bool = False) -> str:
+            try:
+                xpath = "//div[contains(@class,'reports-content')]//table"
+                table = driver.wait_and_get_element(1, By.XPATH, xpath)
+                return table.get_attribute("outerHTML")
+            except Exception as e:
+                if has_failed_once:
+                    raise e
+                else:
+                    return __extract_table_content(True)
+
+        def __has_trade_closed() -> bool:
+            return profit_text is not None
+
+        bs = BeautifulSoup(__extract_table_content(), "lxml")
 
         for row in bs.find_all("tbody"):
             trade_exit_row, trade_entry_row = row.find_all("tr")
             trade_exit_columns = trade_exit_row.find_all("td")
             # trade_entry_columns = trade_entry_row.find_all("td")
 
-            profit = ScraperUtils.extract_number_only_from(
-                trade_exit_columns[6].find("div", attrs={"class": "additional_percent_value"}).text)
-            drawdown = ScraperUtils.extract_number_only_from(
-                trade_exit_columns[9].find("div", attrs={"class": "additional_percent_value"}).text)
-            date = datetime.datetime.strptime(trade_exit_columns[3].text, "%Y-%m-%d %H:%M")
-            trade_number = int(ScraperUtils.extract_number_only_from(trade_exit_columns[0].text))
-            output[trade_number] = {
-                "date": date,
-                "profit_percentage": profit,
-                "drawdown_percentage": drawdown,
-            }
+            profit_text = __extract_text_from_tag(
+                trade_exit_columns[6].find("div", attrs={"class": "additional_percent_value"}))
+            trade_number = int(ScraperUtils.extract_number_only_from(__extract_text_from_tag(trade_exit_columns[0])))
 
-        print()
+            if __has_trade_closed():
+                profit = ScraperUtils.extract_number_only_from(profit_text)
+                drawdown = ScraperUtils.extract_number_only_from(
+                    __extract_text_from_tag(trade_exit_columns[9].find("div", attrs={"class": "additional_percent_value"})))
+                date = datetime.datetime.strptime(__extract_text_from_tag(trade_exit_columns[3]), "%Y-%m-%d %H:%M")
+                output[trade_number] = {
+                    "date": date,
+                    "profit_percentage": profit,
+                    "drawdown_percentage": drawdown,
+                }
+            else:
+                output[trade_number] = None
 
     def __scroll_down_on_trades():
-        xpath = "//table[@class='reports-content__table-pointer']//tbody"
-        driver.wait_and_get_element(1, By.XPATH, xpath).click()
-        WebDriverKeyEventUtils.send_key_event_page_down(driver)
-        sleep(0.3)
+        try:
+            xpath = "//table[@class='reports-content__table-pointer']"
+            driver.wait_and_get_element(1, By.XPATH, xpath).click()
+            WebDriverKeyEventUtils.send_key_event_page_down(driver)
+            sleep(0.3)
+        except:
+            pass
 
     if __were_trades_made(driver):
         __select_strategy_list_of_trades(driver)
@@ -132,7 +157,7 @@ def extract_strategy_trades(driver: BaseDriver) -> Optional[List[Trade]]:
             __extract_table_content_to(trades)
             __scroll_down_on_trades()
         trades_list = [Trade(trade_number, info["date"], info["profit_percentage"], info["drawdown_percentage"]) for
-                       trade_number, info in trades.items()]
+                       trade_number, info in trades.items() if info is not None]
         return trades_list
     else:
         return None

@@ -1,3 +1,4 @@
+from time import sleep
 from typing import List, Union
 
 from selenium.webdriver import Keys, ActionChains
@@ -20,6 +21,12 @@ def send_key_events(driver: WebDriver, keys_to_press: List[Union[Keys, str]], ho
         click_action.key_up(holding_down_key)
 
     click_action.perform()
+
+
+def type_text_with_delay(driver: WebDriver, text: str, delay_between_typing: float = 0.01):
+    for char in text:
+        send_key_events(driver, keys_to_press=[char])
+        sleep(delay_between_typing)
 
 
 def send_key_event_enter(driver: WebDriver):
