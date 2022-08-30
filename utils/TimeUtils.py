@@ -1,7 +1,8 @@
 import logging
 import signal
 from contextlib import contextmanager
-from datetime import datetime, time
+from datetime import datetime
+import time
 
 
 @contextmanager
@@ -40,5 +41,38 @@ def timeout(duration):
     signal.alarm(0)
 
 
+def current_time():
+    return datetime.now()
+
+
+def get_date_from_str(date_str: str, time_format='%d-%b-%yT%H:%M:%S') -> datetime:
+    return datetime.strptime(date_str, time_format)
+
+
+def get_time_stamp_from(date: datetime, time_format='%d-%b-%yT%H:%M:%S') -> str:
+    return date.strftime(time_format)
+
+
+def to_UTC_str(time_millis: int, time_format: str = '%d-%b-%yT%H:%M:%S') -> str:
+    return to_date_time_from(time_millis).strftime(time_format)
+
+
+def to_date_time_from(time_millis: int) -> datetime:
+    return datetime.fromtimestamp(time_millis / 1000.0)
+
+
 def get_time_stamp() -> str:
-    return f"{datetime.now().strftime('%Y-%m-%d')}"
+    return get_time_stamp_formatted('%d-%b-%yT%H:%M:%S')
+
+
+def get_time_stamp_formatted(time_format: str) -> str:
+    return current_time().strftime(time_format)
+
+
+def current_milli_time():
+    return round(time.time() * 1000)
+
+
+def is_today_the_same_day_as(date: datetime) -> bool:
+    current = current_time()
+    return current.day == date.day and current.month == date.month
