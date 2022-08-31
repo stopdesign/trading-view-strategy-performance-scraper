@@ -28,7 +28,7 @@ def request_community_strategies(max_count: int) -> List[Strategy]:
 
 def store_community_strategy(strategies: List[Strategy], output_dir: str):
     with ThreadPoolExecutor(max_workers=__MAX_TREAD_POOL_WORKERS) as executor:
-        executor.map(__write_strategy_to, repeat(output_dir), strategies)
+        executor.map(__write_strategy_to, repeat(f"{output_dir}/external"), strategies)
 
 
 def __write_strategy_to(folder: str, strategy: Strategy):

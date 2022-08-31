@@ -11,6 +11,11 @@ logging.basicConfig(format='[%(asctime)s.%(msecs)03d][%(levelname)s]:  %(message
                     datefmt='%Y-%m-%dT%H:%M:%S', level=logging.INFO)
 
 
+def test():
+    scripts = HandleCommunityStrategyScripts.request_community_strategies(500)
+    print()
+
+
 def obtain_strategies_performance(driver: ScraperDriver, should_use_external_scripts: bool):
     if should_use_external_scripts:
         return obtain_strategies_performance_from_external_scripts(driver)
@@ -67,6 +72,7 @@ if __name__ == '__main__':
         with TimeUtils.measure_time("Whole program execution took {}."):
             # start(should_use_external_scripts=False)
             start(should_use_external_scripts=True)
+            # test()
     except Exception as e:
         crash_info = f"Crashed reason: {str(e)}\n\nFull traceback: {traceback.format_exc()}"
         logging.error("Program crashed...", exc_info=True)
