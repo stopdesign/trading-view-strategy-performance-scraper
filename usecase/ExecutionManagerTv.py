@@ -40,7 +40,7 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
                 chart_page.change_symbol_to(symbol).remove_possible_advert_overlay()
                 with TimeUtils.measure_time("Obtaining stats for symbol " + symbol.equity_name + " took {}."):
                     for interval in execution_config.intervals:
-                        chart_page.change_time_interval_to(interval)
+                        chart_page.change_time_interval_to(interval).remove_possible_advert_overlay()
                         strategy_overview_stats = chart_page.extract_strategy_overview_report()
                         strategy_trades_stats = chart_page.extract_strategy_trades_report() if should_add_trades else []
                         if strategy_overview_stats is not None:

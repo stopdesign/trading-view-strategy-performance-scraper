@@ -3,6 +3,8 @@ import json
 import logging
 import os
 import shutil
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 from utils import TimeUtils
 
@@ -11,6 +13,18 @@ def read_file(path: str):
     with open(path, 'r') as f:
         content = f.read()
     return content
+
+
+def read_all_files_in(directory: str) -> list:
+    def __extract_file_from(content) -> tuple:
+        content_name, _ = os.path.splitext(content.name)
+        return content_name, content.read_text()
+
+    files = []
+    with ThreadPoolExecutor(max_workers=32) as executor:
+        for file_name, file_content in executor.map(__extract_file_from, Path(directory).iterdir()):
+            files.append({"name": file_name, "content": file_content})
+    return files
 
 
 def write_file(path: str, content):

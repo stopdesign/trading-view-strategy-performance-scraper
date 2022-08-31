@@ -1,4 +1,3 @@
-import logging
 from itertools import repeat
 from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor
@@ -54,10 +53,24 @@ def __extract_strategy_from(strategy_raw: dict) -> Optional[Strategy]:
             return None
         else:
             return r["source"]
+
+    def __is_strategy_repainted(content: str) -> bool:
+        if "security(" in content:
+            if "barmerge.lookahead_on" in content:
+                return True
+            elif "//@version=2" in content or \
+                    "//@version=1" in content or \
+                    "//@version" not in content:
+                return True
+        else:
+            return False
+
     script_name = strategy_raw["scriptName"]
     script_version = ScraperUtils.extract_int_number_from(strategy_raw["version"])
     script_content = __extract_strategy_script()
-    if script_content is not None and "strategy(" in script_content:
+    if script_content is not None and \
+            "strategy(" in script_content and \
+            not __is_strategy_repainted(script_content):
         return Strategy(name=script_name, script=script_content, version=script_version)
     else:
         return None

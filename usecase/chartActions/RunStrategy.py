@@ -1,5 +1,4 @@
 import datetime
-import json
 import math
 from time import sleep
 from typing import Dict, Optional, List
@@ -17,34 +16,21 @@ from utils import WebDriverKeyEventUtils, ScraperUtils
 
 def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
     def __open_pine_editor_window():
-        def __click_pine_script_tab():
-            xpath_pine_editor_tab = "//div[@id='footer-chart-panel']//span[text()='Pine Editor']"
-            driver.wait_and_get_element(1, By.XPATH, xpath_pine_editor_tab).click()
-
-        # pine_script_editor_window = driver.wait_and_get_element(3, By.ID, "bottom-area")
-        xpath = "//button[@data-name='toggle-visibility-button']"
-        visibility_footer_window_btn = driver.wait_and_get_element(3, By.XPATH, xpath)
-        is_footer_window_minimized = json.loads(visibility_footer_window_btn.get_attribute("data-active"))
-        if is_footer_window_minimized:
-            visibility_footer_window_btn.click()
-            FindChartElements.change_full_screen_state_footer(driver, False)
         try:
-            pinescript_editor_window = driver.wait_and_get_element(1, By.CLASS_NAME, "tv-script-editor-container")
-            is_pine_editor_tab_visible = ScraperUtils.extract_float_number_from(
-                pinescript_editor_window.get_attribute("style")) > 0
-            if not is_pine_editor_tab_visible:
-                __click_pine_script_tab()
+            xpath = "//div[@id='footer-chart-panel']//div[@data-active='false']//span[text()='Pine Editor']"
+            not_selected_pinescript_tab = driver.wait_and_get_element(1, By.XPATH, xpath)
+            not_selected_pinescript_tab.click()
         except TimeoutException:
-            __click_pine_script_tab()
+            pass
 
+    def __open_free_indicator_tab():
         try:
             xpath = "//div[@id='tv-script-pine-editor-header-root']//div[@data-name='open-script']"
             driver.wait_and_get_element(2, By.XPATH, xpath).click()
+            xpath = "//div[@data-name='menu-inner']//span[contains(text(), 'Indicator')]"
+            driver.wait_and_get_element(1, By.XPATH, xpath).click()
         except Exception as e:
             raise e
-
-        xpath = "//div[@data-name='menu-inner']//span[contains(text(), 'Indicator')]"
-        driver.wait_and_get_element(1, By.XPATH, xpath).click()
 
     def __clear_content_and_enter_strategy():
         pyperclip.copy(strategy_content)
@@ -56,6 +42,7 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
 
     FindChartElements.check_and_close_popups(driver)
     __open_pine_editor_window()
+    __open_free_indicator_tab()
     __clear_content_and_enter_strategy()
     __add_to_chart()
     # self.__change_full_screen_state_footer(True)

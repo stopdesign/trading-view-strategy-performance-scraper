@@ -11,7 +11,7 @@ from model.TimeInterval import TimeInterval
 from sites.tradingview.TvBasePage import TvBasePage
 
 from usecase.chartActions import FindChartElements, SearchShortcutAction, RunStrategy
-from utils import WebDriverKeyEventUtils
+from utils import WebDriverKeyEventUtils, WebDriverActionUtils
 
 
 class TvChartPage(TvBasePage):
@@ -69,9 +69,10 @@ class TvChartPage(TvBasePage):
         for i in range(0, should_fail_attempt):
             try:
                 SearchShortcutAction.change_symbol(self.driver)
-                symbol_to_search = f"{symbol.broker_name}:{symbol.equity_name}".upper()
+                symbol_to_search = symbol.equity_name
                 WebDriverKeyEventUtils.type_text_with_delay(self.driver, text=symbol_to_search)
                 desired_symbol_element = FindChartElements.find_new_search_symbol_matching(symbol, self.driver)
+                WebDriverActionUtils.scroll_to(self.driver, desired_symbol_element)
                 desired_symbol_element.click()
                 return self
             except Exception as e:

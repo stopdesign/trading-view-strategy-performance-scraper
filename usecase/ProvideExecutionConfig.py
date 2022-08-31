@@ -26,7 +26,8 @@ def for_all_equities_external_scripts(max_amount_scripts: int, should_store_stra
     symbols = __get_subset_of_different_equities()
     time_intervals = __get_time_intervals()
     with TimeUtils.measure_time("Downloading " + str(max_amount_scripts) + " scripts took {}."):
-        strategies = __get_community_tv_strategies(max_amount_scripts)
+        # strategies = __get_community_tv_strategies(max_amount_scripts)
+        strategies = __get_strategies_from_folder("strategies/external/31-Aug-22T22-26")
     if should_store_strategies:
         with TimeUtils.measure_time("Persisting " + str(len(strategies)) + " scripts took {}."):
             HandleCommunityStrategyScripts.store_community_strategy(strategies, "strategies")
@@ -36,6 +37,13 @@ def for_all_equities_external_scripts(max_amount_scripts: int, should_store_stra
 
 def __get_subset_of_different_equities() -> List[Symbol]:
     return [
+        Symbol(equity_name="USDCAD", broker_name="FXCM"),
+        Symbol(equity_name="USDJPY", broker_name="FXCM"),
+        Symbol(equity_name="EURUSD", broker_name="FXCM"),
+        Symbol(equity_name="EURGBP", broker_name="FXCM"),
+        Symbol(equity_name="EURCAD", broker_name="FXCM"),
+        Symbol(equity_name="GBPUSD", broker_name="FXCM"),
+        Symbol(equity_name="GBPJPY", broker_name="FXCM"),
         Symbol(equity_name="AAPL", broker_name="NASDAQ"),
         Symbol(equity_name="TSLA", broker_name="NASDAQ"),
         Symbol(equity_name="AMZN", broker_name="NASDAQ"),
@@ -54,13 +62,6 @@ def __get_subset_of_different_equities() -> List[Symbol]:
         Symbol(equity_name="CRUDEOIL", broker_name="MCX"),
         Symbol(equity_name="NATURALGAS", broker_name="MCX"),
         Symbol(equity_name="GER30", broker_name="GLOBALPRIME"),
-        Symbol(equity_name="USDCAD", broker_name="FXCM"),
-        Symbol(equity_name="USDJPY", broker_name="FXCM"),
-        Symbol(equity_name="EURUSD", broker_name="FXCM"),
-        Symbol(equity_name="EURGBP", broker_name="FXCM"),
-        Symbol(equity_name="EURCAD", broker_name="FXCM"),
-        Symbol(equity_name="GBPUSD", broker_name="FXCM"),
-        Symbol(equity_name="GBPJPY", broker_name="FXCM"),
         Symbol(equity_name="BTCUSDTPERP", broker_name="BINANCE"),
         Symbol(equity_name="ETHUSDTPERP", broker_name="BINANCE"),
         Symbol(equity_name="ETCUSDTPERP", broker_name="BINANCE"),
@@ -89,6 +90,7 @@ def __get_time_intervals() -> List[TimeInterval]:
     return [TimeInterval.M5, TimeInterval.M15, TimeInterval.M30,
             TimeInterval.H1, TimeInterval.H2, TimeInterval.H3, TimeInterval.H4,
             TimeInterval.D, TimeInterval.W]
+    # return [TimeInterval.M5, TimeInterval.M15, TimeInterval.M30]
 
 
 def __get_strategies() -> List[Strategy]:
@@ -101,3 +103,8 @@ def __get_strategies() -> List[Strategy]:
 
 def __get_community_tv_strategies(max_amount: int) -> List[Strategy]:
     return HandleCommunityStrategyScripts.request_community_strategies(max_amount)
+
+
+def __get_strategies_from_folder(folder_name: str) -> List[Strategy]:
+    files = FileUtils.read_all_files_in(folder_name)
+    return [Strategy(name=f["name"], script=f["content"], version=1) for f in files]
