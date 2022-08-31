@@ -15,7 +15,7 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
         if strategy.name not in output.keys():
             output[strategy_name] = {"script": strategy.script}
 
-        coin_name = symbol.coin_name
+        coin_name = symbol.equity_name
         interval_value = interval.value
 
         if coin_name not in output[strategy_name].keys():
@@ -38,7 +38,7 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
                     .change_footer_window_full_size(should_maximize_it=True)
             for symbol in execution_config.symbols:
                 chart_page.change_symbol_to(symbol).remove_possible_advert_overlay()
-                with TimeUtils.measure_time("Obtaining stats for symbol " + symbol.coin_name + " took {}."):
+                with TimeUtils.measure_time("Obtaining stats for symbol " + symbol.equity_name + " took {}."):
                     for interval in execution_config.intervals:
                         chart_page.change_time_interval_to(interval)
                         strategy_overview_stats = chart_page.extract_strategy_overview_report()
@@ -46,10 +46,10 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
                         if strategy_overview_stats is not None:
                             __add_strategy_report_to(performance_report, strategy_overview_stats, strategy_trades_stats)
                             logging.info(
-                                f"Added report for {symbol.coin_name} and interval {interval.value}: "
+                                f"Added report for {symbol.equity_name} and interval {interval.value}: "
                                 f"{strategy_overview_stats}")
                         else:
-                            logging.info(f"No report found for {symbol.coin_name} and interval {interval.value}.")
+                            logging.info(f"No report found for {symbol.equity_name} and interval {interval.value}.")
             chart_page.clean_all_overlays()
     return performance_report
 

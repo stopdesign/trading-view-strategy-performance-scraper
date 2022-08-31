@@ -36,9 +36,9 @@ def __write_strategy_to(folder: str, strategy: Strategy):
     filename = f"{ScraperUtils.extract_everything_but_symbols_from(strategy.name, separator='_')}" \
                f"-v{strategy.version}-external.pinescript"
     path = f"{output_folder}/{filename}"
-    logging.info(f"Storing file at {path}")
+    # logging.info(f"Storing file at {path}")
     FileUtils.create_folders_with_file(filename, output_folder)
-    FileUtils.write_json(path, strategy.script)
+    FileUtils.write_file(path, strategy.script)
 
 
 def __extract_strategy_from(strategy_raw: dict) -> Optional[Strategy]:

@@ -13,6 +13,12 @@ def read_file(path: str):
     return content
 
 
+def write_file(path: str, content):
+    with open(path, 'w') as f:
+        f.write(content)
+    return path
+
+
 def delete_folder_with(name: str):
     if os.path.exists(name):
         shutil.rmtree(name)

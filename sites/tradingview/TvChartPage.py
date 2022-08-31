@@ -69,7 +69,8 @@ class TvChartPage(TvBasePage):
         for i in range(0, should_fail_attempt):
             try:
                 SearchShortcutAction.change_symbol(self.driver)
-                WebDriverKeyEventUtils.type_text_with_delay(self.driver, text=symbol.coin_name)
+                symbol_to_search = f"{symbol.broker_name}:{symbol.equity_name}".upper()
+                WebDriverKeyEventUtils.type_text_with_delay(self.driver, text=symbol_to_search)
                 desired_symbol_element = FindChartElements.find_new_search_symbol_matching(symbol, self.driver)
                 desired_symbol_element.click()
                 return self

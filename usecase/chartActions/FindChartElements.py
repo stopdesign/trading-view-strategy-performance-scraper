@@ -73,7 +73,7 @@ def find_new_search_symbol_matching(symbol: Symbol, driver: BaseDriver) -> WebEl
     for found_symbol in found_symbol_rows:
         symbol_name = found_symbol.find_element(By.XPATH, "//div[@data-name='list-item-title']")
         symbol_broker = found_symbol.find_element(By.XPATH, "//div[contains(@class,'exchangeName')]")
-        if symbol_name.text == symbol.coin_name and symbol_broker.text == symbol.broker_name:
+        if symbol_name.text == symbol.equity_name and symbol_broker.text == symbol.broker_name:
             return symbol_name
     raise RuntimeError(f"Can't find desired symbol for {symbol}")
 

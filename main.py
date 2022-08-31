@@ -32,7 +32,7 @@ def obtain_strategies_performance_from_local_scripts(driver: ScraperDriver) -> d
 
 
 def obtain_strategies_performance_from_external_scripts(driver: ScraperDriver) -> dict:
-    max_amount_of_external_strategies = 50
+    max_amount_of_external_strategies = 25
     should_store_locally_external_strategies = True
     execution_config = ProvideExecutionConfig \
         .for_all_equities_external_scripts(max_amount_of_external_strategies,
