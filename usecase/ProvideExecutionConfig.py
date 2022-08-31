@@ -5,19 +5,35 @@ from model.Strategy import Strategy
 from model.Symbol import Symbol
 from model.TimeInterval import TimeInterval
 from network import BinanceClient
-from utils import FileUtils
+from usecase import HandleCommunityStrategyScripts
+from utils import FileUtils, TimeUtils
 
 __BINANCE_EXCLUDED_BASE_ASSETS = ["UST"]  # Tuk sa za6toto TV poradi nqkakva pri4ina ne gi pokazva
 __BINANCE_DESIRED_QUOTE_ASSETS = ["USDT", "BUSD"]
 
 
-def for_all_perpetual_binance_symbols() -> ExecutionConfig:
+def for_all_perpetual_symbols_local_scripts() -> ExecutionConfig:
     symbols = __get_all_perpetual_binance_symbols(
         quote_assets=__BINANCE_DESIRED_QUOTE_ASSETS,
         excluded_base_assets=__BINANCE_EXCLUDED_BASE_ASSETS
     )
     time_intervals = __get_time_intervals()
     strategies = __get_strategies()
+    return ExecutionConfig(symbols=symbols, intervals=time_intervals, strategies=strategies)
+
+
+def for_all_equities_external_scripts(max_amount_scripts: int, should_store_strategies: bool) -> ExecutionConfig:
+    symbols = __get_all_perpetual_binance_symbols(
+        quote_assets=__BINANCE_DESIRED_QUOTE_ASSETS,
+        excluded_base_assets=__BINANCE_EXCLUDED_BASE_ASSETS
+    )
+    time_intervals = __get_time_intervals()
+    with TimeUtils.measure_time("Downloading " + str(max_amount_scripts) + " scripts took {}."):
+        strategies = __get_community_tv_strategies(max_amount_scripts)
+    if should_store_strategies:
+        with TimeUtils.measure_time("Persisting " + str(len(strategies)) + " scripts took {}."):
+            HandleCommunityStrategyScripts.store_community_strategy(strategies, "strategies")
+
     return ExecutionConfig(symbols=symbols, intervals=time_intervals, strategies=strategies)
 
 
@@ -41,5 +57,11 @@ def __get_time_intervals() -> List[TimeInterval]:
 
 def __get_strategies() -> List[Strategy]:
     return [
-        Strategy(name="ema&vwap&macd", script=FileUtils.read_file("strategies/ema&vwap&macd.pinescript"))
+        Strategy(name="ema&vwap&macd",
+                 script=FileUtils.read_file("strategies/ema&vwap&macd.pinescript"),
+                 version=1)
     ]
+
+
+def __get_community_tv_strategies(max_amount: int) -> List[Strategy]:
+    return HandleCommunityStrategyScripts.request_community_strategies(max_amount)

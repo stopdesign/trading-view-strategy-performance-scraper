@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 import pandas as pd
 import re
@@ -17,7 +18,7 @@ def extract_tv_table_unwanted_info(driver) -> DataFrame:
     return table
 
 
-def extract_number_only_from(text: str):
+def extract_float_number_from(text: str) -> float:
     try:
         str_number = "".join(re.findall(r"[−|-]?\d*?\.?\d+", text))
         if str_number[0] == "−" or str_number[0] == "-":
@@ -26,6 +27,18 @@ def extract_number_only_from(text: str):
             return float(str_number)
     except:
         return math.nan
+
+
+def extract_int_number_from(text: str) -> int:
+    try:
+        return int(extract_float_number_from(text))
+    except:
+        return -9999999
+
+
+def extract_everything_but_symbols_from(text: str, separator: Optional[str]) -> str:
+    _separator = separator if separator else ""
+    return _separator.join(re.findall(r"\w+", text))
 
 
 def extract_head_and_body_from_table(html_content, table_position) -> DataFrame:

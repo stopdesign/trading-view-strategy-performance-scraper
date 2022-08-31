@@ -4,9 +4,8 @@ import traceback
 import EnvConfig
 from driver.ScraperDriver import ScraperDriver
 from network import NotifierClient
-from usecase import SendDataUseCase, ProvideExecutionConfig, ExecutionManagerTv
+from usecase import SendDataUseCase, ProvideExecutionConfig, ExecutionManagerTv, HandleCommunityStrategyScripts
 from utils import TimeUtils, FileUtils
-from utils.ScraperUtils import extract_number_only_from
 
 logging.basicConfig(format='[%(asctime)s.%(msecs)03d][%(levelname)s]:  %(message)s',
                     datefmt='%Y-%m-%dT%H:%M:%S', level=logging.INFO)
@@ -20,17 +19,23 @@ def obtain_strategies_performance(driver: ScraperDriver, should_use_external_scr
 
 
 def obtain_strategies_performance_from_local_scripts(driver: ScraperDriver) -> dict:
-    execution_config = ProvideExecutionConfig.for_all_perpetual_binance_symbols()
+    execution_config = ProvideExecutionConfig.for_all_perpetual_symbols_local_scripts()
     chart_page = ExecutionManagerTv.login(driver)
-    strategies_report = ExecutionManagerTv.obtain_strategy_performance_data_for(chart_page, execution_config)
+    strategies_report = ExecutionManagerTv \
+        .obtain_strategy_performance_data_for(chart_page, execution_config, should_add_trades=True)
     return strategies_report
 
 
 def obtain_strategies_performance_from_external_scripts(driver: ScraperDriver) -> dict:
-    # execution_config = ProvideExecutionConfig.for_all_perpetual_binance_symbols()
-    # chart_page = ExecutionManagerTv.login(driver)
-    # strategies_report = ExecutionManagerTv.obtain_strategy_performance_data_for(chart_page, execution_config)
-    # return strategies_report
+    max_amount_of_external_strategies = 50
+    should_store_locally_external_strategies = True
+    execution_config = ProvideExecutionConfig \
+        .for_all_equities_external_scripts(max_amount_of_external_strategies,
+                                           should_store_locally_external_strategies)
+    chart_page = ExecutionManagerTv.login(driver)
+    strategies_report = ExecutionManagerTv \
+        .obtain_strategy_performance_data_for(chart_page, execution_config, should_add_trades=False)
+    return strategies_report
     pass
 
 
@@ -60,6 +65,7 @@ if __name__ == '__main__':
     try:
         logging.info("Program starting.")
         with TimeUtils.measure_time("Whole program execution took {}."):
+            # start(should_use_external_scripts=False)
             start(should_use_external_scripts=True)
     except Exception as e:
         crash_info = f"Crashed reason: {str(e)}\n\nFull traceback: {traceback.format_exc()}"

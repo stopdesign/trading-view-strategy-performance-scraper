@@ -27,7 +27,7 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
         footer_tabs = driver.wait_and_get_element(5, By.ID, "footer-chart-panel")
         try:
             pinescript_editor_window = driver.wait_and_get_element(1, By.CLASS_NAME, "tv-script-editor-container")
-            is_pine_editor_tab_visible = ScraperUtils.extract_number_only_from(
+            is_pine_editor_tab_visible = ScraperUtils.extract_float_number_from(
                 pinescript_editor_window.get_attribute("style")) > 0
             if not is_pine_editor_tab_visible:
                 footer_tabs.find_element(By.XPATH, "//span[contains(text(), 'Pine Editor')]").click()
@@ -60,7 +60,7 @@ def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
     def __get_first_line_number_from(index: int, fails_for_first_time=False) -> float:
         try:
             number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index + 1}]//strong")
-            float_number = ScraperUtils.extract_number_only_from(number.text)
+            float_number = ScraperUtils.extract_float_number_from(number.text)
             return float_number
         except Exception as e:
             if not fails_for_first_time:
@@ -71,7 +71,7 @@ def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
     def __get_second_line_number_from(index: int, fails_for_first_time=False) -> float:
         try:
             number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index + 1}]//span")
-            float_number = ScraperUtils.extract_number_only_from(number.text)
+            float_number = ScraperUtils.extract_float_number_from(number.text)
             return float_number
         except Exception as e:
             if not fails_for_first_time:
@@ -126,11 +126,11 @@ def extract_strategy_trades(driver: BaseDriver) -> Optional[List[Trade]]:
 
             profit_text = __extract_text_from_tag(
                 trade_exit_columns[6].find("div", attrs={"class": "additional_percent_value"}))
-            trade_number = int(ScraperUtils.extract_number_only_from(__extract_text_from_tag(trade_exit_columns[0])))
+            trade_number = int(ScraperUtils.extract_float_number_from(__extract_text_from_tag(trade_exit_columns[0])))
 
             if __has_trade_closed():
-                profit = ScraperUtils.extract_number_only_from(profit_text)
-                drawdown = ScraperUtils.extract_number_only_from(
+                profit = ScraperUtils.extract_float_number_from(profit_text)
+                drawdown = ScraperUtils.extract_float_number_from(
                     __extract_text_from_tag(trade_exit_columns[9].find("div", attrs={"class": "additional_percent_value"})))
                 date = datetime.datetime.strptime(__extract_text_from_tag(trade_exit_columns[3]), "%Y-%m-%d %H:%M")
                 output[trade_number] = {
