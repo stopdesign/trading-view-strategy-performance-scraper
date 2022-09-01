@@ -88,9 +88,9 @@ class TvChartPage(TvBasePage):
     def remove_possible_advert_overlay(self):
         try:
             xpath = "//div[@data-role='toast-container']//button[contains(@class,'close-button')]"
-            self.driver.wait_and_get_element(1, By.XPATH, xpath).click()
+            self.driver.wait_and_get_element(0.5, By.XPATH, xpath).click()
             xpath = "//div[@id='overlap-manager-root']//button[contains(@class,'close-button')]"
-            self.driver.wait_and_get_element(1, By.XPATH, xpath).click()
+            self.driver.wait_and_get_element(0.5, By.XPATH, xpath).click()
         except TimeoutException:
             pass
         finally:

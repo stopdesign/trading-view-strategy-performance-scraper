@@ -168,9 +168,9 @@ def __were_trades_made(driver: BaseDriver) -> bool:
 
 def __select_strategy_overview(driver: BaseDriver):
     xpath = "//div[@id='bottom-area']//div[contains(@class,'tabSwitcherContainer')]//button[text()='Overview']"
-    driver.wait_and_get_element(3, By.XPATH, xpath).click()
+    driver.wait_and_get_element(1, By.XPATH, xpath).click()
 
 
 def __select_strategy_list_of_trades(driver: BaseDriver):
     xpath = "//div[@id='bottom-area']//div[contains(@class,'tabSwitcherContainer')]//button[text()='List of Trades']"
-    driver.wait_and_get_element(3, By.XPATH, xpath).click()
+    driver.wait_and_get_element(1, By.XPATH, xpath).click()
