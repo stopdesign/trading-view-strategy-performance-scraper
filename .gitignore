@@ -1,5 +1,6 @@
 *.xlsx
 /strategies
+/output
 
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm,python,virtualenv
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm,python,virtualenv

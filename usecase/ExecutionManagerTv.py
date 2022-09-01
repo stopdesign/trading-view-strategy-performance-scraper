@@ -4,7 +4,7 @@ from driver.ScraperDriver import ScraperDriver
 from model.ExecutionConfig import ExecutionConfig
 from sites.tradingview.TvChartPage import TvChartPage
 from sites.tradingview.TvHomePage import TvHomePage
-from utils import TimeUtils
+from utils import TimeUtils, FileUtils
 
 
 def obtain_strategy_performance_data_for(chart_page: TvChartPage,
@@ -48,6 +48,8 @@ def obtain_strategy_performance_data_for(chart_page: TvChartPage,
                             logging.info(
                                 f"Added report for {symbol.equity_name} and interval {interval.value}: "
                                 f"{strategy_overview_stats}")
+                            FileUtils.write_json(execution_config.output_file_name, performance_report)
+
                         else:
                             logging.info(f"No report found for {symbol.equity_name} and interval {interval.value}.")
             chart_page.clean_all_overlays()

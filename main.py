@@ -17,10 +17,13 @@ def test():
 
 
 def obtain_strategies_performance(driver: ScraperDriver, should_use_external_scripts: bool):
-    if should_use_external_scripts:
-        return obtain_strategies_performance_from_external_scripts(driver)
-    else:
-        return obtain_strategies_performance_from_local_scripts(driver)
+    try:
+        if should_use_external_scripts:
+            return obtain_strategies_performance_from_external_scripts(driver)
+        else:
+            return obtain_strategies_performance_from_local_scripts(driver)
+    except Exception as e:
+        raise e
 
 
 def obtain_strategies_performance_from_local_scripts(driver: ScraperDriver) -> dict:

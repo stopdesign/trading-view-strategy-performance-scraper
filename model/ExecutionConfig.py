@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 
 from model.Strategy import Strategy
 from model.Symbol import Symbol
@@ -6,17 +6,16 @@ from model.TimeInterval import TimeInterval
 
 
 class ExecutionConfig:
-    __KEY_SYMBOL = "symbol"
-    __KEY_INTERVALS = "intervals"
-    __KEY_STRATEGIES = "strategies"
 
     def __init__(self,
                  symbols: List[Symbol],
                  intervals: List[TimeInterval],
-                 strategies: List[Strategy]):
+                 strategies: List[Strategy],
+                 output_file_name: str):
         self._intervals = intervals
         self._symbols = symbols
         self._strategies = strategies
+        self._output_file_name = output_file_name
 
     @property
     def intervals(self) -> List[TimeInterval]:
@@ -31,14 +30,5 @@ class ExecutionConfig:
         return self._strategies
 
     @property
-    def config(self) -> List[Dict]:
-        return [
-            {
-                self.__KEY_SYMBOL: symbol,
-                self.__KEY_INTERVALS: self._intervals,
-                self.__KEY_STRATEGIES: self._strategies
-            } for symbol in self._symbols
-        ]
-
-    def get_symbol_from(self, config: Dict) -> str:
-        return config[self.__KEY_SYMBOL]
+    def output_file_name(self) -> str:
+        return self._output_file_name

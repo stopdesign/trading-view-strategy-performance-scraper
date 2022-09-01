@@ -19,7 +19,9 @@ def for_all_perpetual_symbols_local_scripts() -> ExecutionConfig:
     )
     time_intervals = __get_time_intervals()
     strategies = __get_strategies()
-    return ExecutionConfig(symbols=symbols, intervals=time_intervals, strategies=strategies)
+    output_file_name = __get_output_file_name(is_for_external_scripts=False)
+    return ExecutionConfig(symbols=symbols, intervals=time_intervals,
+                           strategies=strategies, output_file_name=output_file_name)
 
 
 def for_all_equities_external_scripts(max_amount_scripts: int, should_store_strategies: bool) -> ExecutionConfig:
@@ -32,7 +34,9 @@ def for_all_equities_external_scripts(max_amount_scripts: int, should_store_stra
         with TimeUtils.measure_time("Persisting " + str(len(strategies)) + " scripts took {}."):
             HandleCommunityStrategyScripts.store_community_strategy(strategies, "strategies")
 
-    return ExecutionConfig(symbols=symbols, intervals=time_intervals, strategies=strategies)
+    output_file_name = __get_output_file_name(is_for_external_scripts=True)
+    return ExecutionConfig(symbols=symbols, intervals=time_intervals,
+                           strategies=strategies, output_file_name=output_file_name)
 
 
 def __get_subset_of_different_equities() -> List[Symbol]:
@@ -108,3 +112,10 @@ def __get_community_tv_strategies(max_amount: int) -> List[Strategy]:
 def __get_strategies_from_folder(folder_name: str) -> List[Strategy]:
     files = FileUtils.read_all_files_in(folder_name)
     return [Strategy(name=f["name"], script=f["content"], version=1) for f in files]
+
+
+def __get_output_file_name(is_for_external_scripts: bool) -> str:
+    directory = FileUtils.get_path_for("output", "performance")
+    file_name = f"{TimeUtils.get_time_stamp_formatted('%d-%b-%yT%H-%M')}-" \
+                f"{'external' if is_for_external_scripts else 'local'}.json"
+    return FileUtils.create_folders_with_file(file_name, directory)
