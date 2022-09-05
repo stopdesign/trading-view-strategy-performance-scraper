@@ -36,7 +36,7 @@ def __open_search_action_menu_and_click(driver: BaseDriver, action_to_select: st
         driver.wait_and_get_element(1, By.ID, "footer-chart-panel").click()
         WebDriverKeyEventUtils.send_key_events(driver, holding_down_keys=[Keys.COMMAND], keys_to_press=["k"])
         xpath = "//div[@data-name='globalSearch']//input[@data-role='search']"
-        driver.wait_and_get_element(2, By.XPATH, xpath).send_keys(action_to_select)
+        driver.wait_and_get_element(3, By.XPATH, xpath).send_keys(action_to_select)
     except Exception as e:
         raise e
     try:

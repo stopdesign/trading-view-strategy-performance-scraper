@@ -1,4 +1,5 @@
 import datetime
+import logging
 import math
 from time import sleep
 from typing import Dict, Optional, List
@@ -14,14 +15,9 @@ from usecase.chartActions import FindChartElements
 from utils import WebDriverKeyEventUtils, ScraperUtils
 
 
-def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
+def load_strategy_on_chart(driver: BaseDriver, strategy_content: str, attempts_to_load: int = 0):
     def __open_pine_editor_window():
-        try:
-            xpath = "//div[@id='footer-chart-panel']//div[@data-active='false']//span[text()='Pine Editor']"
-            not_selected_pinescript_tab = driver.wait_and_get_element(1, By.XPATH, xpath)
-            not_selected_pinescript_tab.click()
-        except TimeoutException:
-            pass
+        __open_footer_chart_panel_button_with(driver, "Pine Editor")
 
     def __open_free_indicator_tab():
         try:
@@ -40,12 +36,26 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str):
         pine_editor_tabs = driver.wait_and_get_element(3, By.ID, "tv-script-pine-editor-header-root")
         pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='add-script-to-chart']").click()
 
+    def __did_script_loaded_successfully() -> bool:
+        _xpath = "//div[contains(@class,'tv-script-console-text')]//div[last()]"
+        last_console_message = driver.wait_and_get_element(1, By.XPATH, _xpath)
+        return "error" not in last_console_message.get_attribute("class")
+
+    max_attempts_to_load = 3
     FindChartElements.check_and_close_popups(driver)
     __open_pine_editor_window()
     __open_free_indicator_tab()
     __clear_content_and_enter_strategy()
     __add_to_chart()
-    # self.__change_full_screen_state_footer(True)
+    if __did_script_loaded_successfully():
+        __open_footer_chart_panel_button_with(driver, "Strategy Tester")
+        return
+    else:
+        if attempts_to_load < max_attempts_to_load:
+            logging.info(f"Retrying loading script again to the screen.")
+            load_strategy_on_chart(driver, strategy_content, attempts_to_load+1)
+        else:
+            raise Exception(f"Unable to load script on the screen after {max_attempts_to_load} attempts...")
 
 
 def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
@@ -174,3 +184,11 @@ def __select_strategy_overview(driver: BaseDriver):
 def __select_strategy_list_of_trades(driver: BaseDriver):
     xpath = "//div[@id='bottom-area']//div[contains(@class,'tabSwitcherContainer')]//button[text()='List of Trades']"
     driver.wait_and_get_element(1, By.XPATH, xpath).click()
+
+
+def __open_footer_chart_panel_button_with(driver: BaseDriver, text: str):
+    try:
+        xpath = f"//div[@id='footer-chart-panel']//div[@data-active='false']//span[text()='{text}']"
+        driver.wait_and_get_element(1, By.XPATH, xpath).click()
+    except TimeoutException:
+        pass

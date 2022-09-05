@@ -22,7 +22,12 @@ def __format_time_delta_to_str(start_date: datetime, end_date: datetime) -> str:
     spent_millis = int(delta.microseconds / 1_000)
     spent_secs = delta.seconds
     spent_min = int(spent_secs / 60)
-    if spent_min > 0:
+    spent_hours = int(spent_min / 60)
+    if spent_hours > 0:
+        rest_secs = spent_secs - spent_min * 60
+        rest_mins = spent_min % 60
+        return f"{spent_hours}h {rest_mins}min {rest_secs}s {spent_millis}ms"
+    elif spent_min > 0:
         rest_secs = spent_secs - spent_min * 60
         return f"{spent_min}min {rest_secs}s {spent_millis}ms"
     elif spent_secs > 0:

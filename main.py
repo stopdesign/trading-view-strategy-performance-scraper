@@ -44,7 +44,6 @@ def obtain_strategies_performance_from_external_scripts(driver: ScraperDriver) -
     strategies_report = ExecutionManagerTv \
         .obtain_strategy_performance_data_for(chart_page, execution_config, should_add_trades=False)
     return strategies_report
-    pass
 
 
 def write_to_json(strategy_performance, should_use_external_scripts: bool):
