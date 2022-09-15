@@ -2,7 +2,7 @@ from typing import List
 
 from model.ExecutionConfig import ExecutionConfig
 from model.Strategy import Strategy
-from model.Symbol import Symbol
+from model.Symbol import Symbol, SymbolType
 from model.TimeInterval import TimeInterval
 from network import BinanceClient
 from usecase import HandleCommunityStrategyScripts
@@ -41,52 +41,54 @@ def for_all_equities_external_scripts(max_amount_scripts: int, should_store_stra
 
 def __get_subset_of_different_equities() -> List[Symbol]:
     return [
-        Symbol(equity_name="USDCAD", broker_name="FXCM"),
-        Symbol(equity_name="USDJPY", broker_name="FXCM"),
-        Symbol(equity_name="EURUSD", broker_name="FXCM"),
-        Symbol(equity_name="EURGBP", broker_name="FXCM"),
-        Symbol(equity_name="EURCAD", broker_name="FXCM"),
-        Symbol(equity_name="GBPUSD", broker_name="FXCM"),
-        Symbol(equity_name="GBPJPY", broker_name="FXCM"),
-        Symbol(equity_name="AAPL", broker_name="NASDAQ"),
-        Symbol(equity_name="TSLA", broker_name="NASDAQ"),
-        Symbol(equity_name="AMZN", broker_name="NASDAQ"),
-        Symbol(equity_name="NVDA", broker_name="NASDAQ"),
-        Symbol(equity_name="BBBY", broker_name="NASDAQ"),
-        Symbol(equity_name="META", broker_name="NASDAQ"),
-        Symbol(equity_name="MSFT", broker_name="NASDAQ"),
-        Symbol(equity_name="BABA", broker_name="NASDAQ"),
-        Symbol(equity_name="NFLX", broker_name="NASDAQ"),
-        Symbol(equity_name="GOOG", broker_name="NASDAQ"),
-        Symbol(equity_name="AMC", broker_name="NYSE"),
-        Symbol(equity_name="DJI", broker_name="DJ"),
-        Symbol(equity_name="SPX", broker_name="SP"),
-        Symbol(equity_name="NIFTY", broker_name="NSE"),
-        Symbol(equity_name="ES", broker_name="CME_MINI"),
-        Symbol(equity_name="CRUDEOIL", broker_name="MCX"),
-        Symbol(equity_name="NATURALGAS", broker_name="MCX"),
-        Symbol(equity_name="GER30", broker_name="GLOBALPRIME"),
-        Symbol(equity_name="BTCUSDTPERP", broker_name="BINANCE"),
-        Symbol(equity_name="ETHUSDTPERP", broker_name="BINANCE"),
-        Symbol(equity_name="ETCUSDTPERP", broker_name="BINANCE"),
-        Symbol(equity_name="SOLUSDTPERP", broker_name="BINANCE"),
-        Symbol(equity_name="APEUSDTPERP", broker_name="BINANCE"),
-        Symbol(equity_name="EOSUSDTPERP", broker_name="BINANCE"),
-        Symbol(equity_name="XRPUSDTPERP", broker_name="BINANCE"),
-        Symbol(equity_name="BNBUSDTPERP", broker_name="BINANCE"),
-        Symbol(equity_name="ATOMUSDTPERP", broker_name="BINANCE"),
+        Symbol(equity_name="USDCAD", broker_name="FXCM", _type=SymbolType.FOREX),
+        Symbol(equity_name="USDJPY", broker_name="FXCM", _type=SymbolType.FOREX),
+        Symbol(equity_name="EURUSD", broker_name="FXCM", _type=SymbolType.FOREX),
+        Symbol(equity_name="EURGBP", broker_name="FXCM", _type=SymbolType.FOREX),
+        Symbol(equity_name="EURCAD", broker_name="FXCM", _type=SymbolType.FOREX),
+        Symbol(equity_name="GBPUSD", broker_name="FXCM", _type=SymbolType.FOREX),
+        Symbol(equity_name="GBPJPY", broker_name="FXCM", _type=SymbolType.FOREX),
+        Symbol(equity_name="AAPL", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="TSLA", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="AMZN", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="NVDA", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="BBBY", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="META", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="MSFT", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="BABA", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="NFLX", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="GOOG", broker_name="NASDAQ", _type=SymbolType.STOCK),
+        Symbol(equity_name="AMC", broker_name="NYSE", _type=SymbolType.STOCK),
+        Symbol(equity_name="DJI", broker_name="DJ", _type=SymbolType.INDEX),
+        Symbol(equity_name="SPX", broker_name="SP", _type=SymbolType.INDEX),
+        Symbol(equity_name="NIFTY", broker_name="NSE", _type=SymbolType.INDEX),
+        Symbol(equity_name="ES", broker_name="CME_MINI", _type=SymbolType.INDEX),
+        Symbol(equity_name="GER30", broker_name="GLOBALPRIME", _type=SymbolType.INDEX),
+        Symbol(equity_name="CRUDEOIL", broker_name="MCX", _type=SymbolType.COMMODITY),
+        Symbol(equity_name="NATURALGAS", broker_name="MCX", _type=SymbolType.COMMODITY),
+        Symbol(equity_name="BTCUSDTPERP", broker_name="BINANCE", _type=SymbolType.CRYPTO),
+        Symbol(equity_name="ETHUSDTPERP", broker_name="BINANCE", _type=SymbolType.CRYPTO),
+        Symbol(equity_name="ETCUSDTPERP", broker_name="BINANCE", _type=SymbolType.CRYPTO),
+        Symbol(equity_name="SOLUSDTPERP", broker_name="BINANCE", _type=SymbolType.CRYPTO),
+        Symbol(equity_name="APEUSDTPERP", broker_name="BINANCE", _type=SymbolType.CRYPTO),
+        Symbol(equity_name="EOSUSDTPERP", broker_name="BINANCE", _type=SymbolType.CRYPTO),
+        Symbol(equity_name="XRPUSDTPERP", broker_name="BINANCE", _type=SymbolType.CRYPTO),
+        Symbol(equity_name="BNBUSDTPERP", broker_name="BINANCE", _type=SymbolType.CRYPTO),
+        Symbol(equity_name="ATOMUSDTPERP", broker_name="BINANCE", _type=SymbolType.CRYPTO),
     ]
 
 
 def __get_all_perpetual_binance_symbols(quote_assets: list, excluded_base_assets: list) -> List[Symbol]:
     raw_symbols = BinanceClient.request_all_symbols_perpetual()
-    return [Symbol(equity_name=s['symbol'] + "PERP", broker_name="BINANCE") for s in raw_symbols
+    return [Symbol(equity_name=s['symbol'] + "PERP", broker_name="BINANCE", _type=SymbolType.CRYPTO)
+            for s in raw_symbols
             if s['quoteAsset'] in quote_assets and s['baseAsset'] not in excluded_base_assets]
 
 
 def __get_all_spot_binance_symbols(quote_assets: list, excluded_base_assets: list) -> List[Symbol]:
     raw_symbols = BinanceClient.request_all_symbols_spot()
-    return [Symbol(equity_name=s['symbol'], broker_name="BINANCE") for s in raw_symbols
+    return [Symbol(equity_name=s['symbol'], broker_name="BINANCE", _type=SymbolType.CRYPTO)
+            for s in raw_symbols
             if s['quoteAsset'] in quote_assets and s['baseAsset'] not in excluded_base_assets]
 
 
