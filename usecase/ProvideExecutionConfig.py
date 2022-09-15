@@ -1,42 +1,51 @@
 from typing import List
 
 from model.ExecutionConfig import ExecutionConfig
+from model.RuntimeConfig import RuntimeConfig
 from model.Strategy import Strategy
 from model.Symbol import Symbol, SymbolType
 from model.TimeInterval import TimeInterval
-from network import BinanceClient
-from usecase import HandleCommunityStrategyScripts
-from utils import FileUtils, TimeUtils
+from network import BinanceClient, PerformanceServerClient
 
 __BINANCE_EXCLUDED_BASE_ASSETS = ["UST"]  # Tuk sa za6toto TV poradi nqkakva pri4ina ne gi pokazva
 __BINANCE_DESIRED_QUOTE_ASSETS = ["USDT", "BUSD"]
 
 
-def for_all_perpetual_symbols_local_scripts() -> ExecutionConfig:
+def for_all_perpetual(should_use_random_strategy: bool) -> RuntimeConfig:
+    strategy = __get_strategy_random() if should_use_random_strategy else __get_strategy_ema_vwap()
     symbols = __get_all_perpetual_binance_symbols(
         quote_assets=__BINANCE_DESIRED_QUOTE_ASSETS,
         excluded_base_assets=__BINANCE_EXCLUDED_BASE_ASSETS
     )
     time_intervals = __get_time_intervals()
-    strategies = __get_strategies()
-    output_file_name = __get_output_file_name(is_for_external_scripts=False)
-    return ExecutionConfig(symbols=symbols, intervals=time_intervals,
-                           strategies=strategies, output_file_name=output_file_name)
+    execution_config = ExecutionConfig(symbols=symbols, intervals=time_intervals, strategy=strategy)
+    return __request_runtime_config_for(execution_config)
 
 
-def for_all_equities_external_scripts(max_amount_scripts: int, should_store_strategies: bool) -> ExecutionConfig:
+def for_all_equities(should_use_random_strategy: bool) -> RuntimeConfig:
+    strategy = __get_strategy_random() if should_use_random_strategy else __get_strategy_ema_vwap()
     symbols = __get_subset_of_different_equities()
     time_intervals = __get_time_intervals()
-    with TimeUtils.measure_time("Downloading " + str(max_amount_scripts) + " scripts took {}."):
-        # strategies = __get_community_tv_strategies(max_amount_scripts)
-        strategies = __get_strategies_from_folder("strategies/external/31-Aug-22T22-50-new-desired-7")
-    if should_store_strategies:
-        with TimeUtils.measure_time("Persisting " + str(len(strategies)) + " scripts took {}."):
-            HandleCommunityStrategyScripts.store_community_strategy(strategies, "strategies")
+    execution_config = ExecutionConfig(symbols=symbols, intervals=time_intervals, strategy=strategy)
+    return __request_runtime_config_for(execution_config)
 
-    output_file_name = __get_output_file_name(is_for_external_scripts=True)
-    return ExecutionConfig(symbols=symbols, intervals=time_intervals,
-                           strategies=strategies, output_file_name=output_file_name)
+
+def __request_runtime_config_for(execution_config: ExecutionConfig) -> RuntimeConfig:
+    symbols = [
+        {
+            "name": s.equity_name,
+            "broker": s.broker_name,
+            "type": s.type.value
+        } for s in execution_config.symbols
+    ]
+    time_intervals = [t.value for t in execution_config.intervals]
+    payload = {
+        "strategy": execution_config.strategy,
+        "symbols": symbols,
+        "timeIntervals": time_intervals
+    }
+    raw_config = PerformanceServerClient.request_runtime_config(payload)
+    return RuntimeConfig.from_mongo_server_response(raw_config)
 
 
 def __get_subset_of_different_equities() -> List[Symbol]:
@@ -92,32 +101,18 @@ def __get_all_spot_binance_symbols(quote_assets: list, excluded_base_assets: lis
             if s['quoteAsset'] in quote_assets and s['baseAsset'] not in excluded_base_assets]
 
 
+def __get_strategy_ema_vwap() -> Strategy:
+    strategy = PerformanceServerClient.request_strategy(name="ema&vwap&macd", version=1)
+    return Strategy.from_mongo_server_response(strategy)
+
+
+def __get_strategy_random() -> Strategy:
+    strategy = PerformanceServerClient.request_random_strategy()
+    return Strategy.from_mongo_server_response(strategy)
+
+
 def __get_time_intervals() -> List[TimeInterval]:
     return [TimeInterval.M5, TimeInterval.M15, TimeInterval.M30,
             TimeInterval.H1, TimeInterval.H2, TimeInterval.H3, TimeInterval.H4,
             TimeInterval.D, TimeInterval.W]
     # return [TimeInterval.M5, TimeInterval.M15, TimeInterval.M30]
-
-
-def __get_strategies() -> List[Strategy]:
-    return [
-        Strategy(name="ema&vwap&macd",
-                 script=FileUtils.read_file("strategies/ema&vwap&macd.pinescript"),
-                 version=1)
-    ]
-
-
-def __get_community_tv_strategies(max_amount: int) -> List[Strategy]:
-    return HandleCommunityStrategyScripts.request_community_strategies(max_amount)
-
-
-def __get_strategies_from_folder(folder_name: str) -> List[Strategy]:
-    files = FileUtils.read_all_files_in(folder_name)
-    return [Strategy(name=f["name"], script=f["content"], version=1) for f in files]
-
-
-def __get_output_file_name(is_for_external_scripts: bool) -> str:
-    directory = FileUtils.get_path_for("output", "performance")
-    file_name = f"{TimeUtils.get_time_stamp_formatted('%d-%b-%yT%H-%M')}-" \
-                f"{'external' if is_for_external_scripts else 'local'}.json"
-    return FileUtils.create_folders_with_file(file_name, directory)

@@ -29,6 +29,14 @@ class Symbol:
     def type(self) -> SymbolType:
         return self._type
 
+    @classmethod
+    def from_mongo_server_response(cls, data: dict):
+        return cls(
+            equity_name=data["name"],
+            broker_name=data["broker"],
+            _type=SymbolType[data["type"]]
+        )
+
     def __repr__(self):
         return f"Symbol(equity={self.equity_name}, broker={self.broker_name}, type={self.type.value})"
 

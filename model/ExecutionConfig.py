@@ -10,12 +10,10 @@ class ExecutionConfig:
     def __init__(self,
                  symbols: List[Symbol],
                  intervals: List[TimeInterval],
-                 strategies: List[Strategy],
-                 output_file_name: str):
+                 strategy: Strategy):
         self._intervals = intervals
         self._symbols = symbols
-        self._strategies = strategies
-        self._output_file_name = output_file_name
+        self._strategy = strategy
 
     @property
     def intervals(self) -> List[TimeInterval]:
@@ -26,9 +24,5 @@ class ExecutionConfig:
         return self._symbols
 
     @property
-    def strategies(self) -> List[Strategy]:
-        return self._strategies
-
-    @property
-    def output_file_name(self) -> str:
-        return self._output_file_name
+    def strategy(self) -> Strategy:
+        return self._strategy
