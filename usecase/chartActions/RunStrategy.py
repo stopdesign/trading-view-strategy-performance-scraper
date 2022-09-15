@@ -37,6 +37,8 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str, attempts_t
         pine_editor_tabs.find_element(By.XPATH, "//div[@data-name='add-script-to-chart']").click()
 
     def __did_script_loaded_successfully() -> bool:
+        # TODO get prev count of elements and wait until count change
+        sleep(1.5)
         _xpath = "//div[contains(@class,'tv-script-console-text')]//div[last()]"
         last_console_message = driver.wait_and_get_element(1, By.XPATH, _xpath)
         return "error" not in last_console_message.get_attribute("class")

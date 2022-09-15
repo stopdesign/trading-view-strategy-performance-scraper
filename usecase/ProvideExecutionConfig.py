@@ -29,7 +29,7 @@ def for_all_equities_external_scripts(max_amount_scripts: int, should_store_stra
     time_intervals = __get_time_intervals()
     with TimeUtils.measure_time("Downloading " + str(max_amount_scripts) + " scripts took {}."):
         # strategies = __get_community_tv_strategies(max_amount_scripts)
-        strategies = __get_strategies_from_folder("strategies/external/31-Aug-22T22-50-new-desired-3")
+        strategies = __get_strategies_from_folder("strategies/external/31-Aug-22T22-50-new-desired-7")
     if should_store_strategies:
         with TimeUtils.measure_time("Persisting " + str(len(strategies)) + " scripts took {}."):
             HandleCommunityStrategyScripts.store_community_strategy(strategies, "strategies")
