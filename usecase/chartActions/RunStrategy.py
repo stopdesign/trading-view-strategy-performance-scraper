@@ -39,9 +39,9 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str, attempts_t
 
     def __did_script_loaded_successfully() -> bool:
         # TODO get prev count of elements and wait until count change
-        sleep(1.5)
+        # sleep(1.5)
         _xpath = "//div[contains(@class,'tv-script-console-text')]//div[last()]"
-        last_console_message = driver.wait_and_get_element(1, By.XPATH, _xpath)
+        last_console_message = driver.wait_and_get_element(5, By.XPATH, _xpath)
         return "error" not in last_console_message.get_attribute("class")
 
     max_attempts_to_load = 3

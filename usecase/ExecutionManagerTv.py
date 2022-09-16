@@ -5,6 +5,7 @@ from driver.ScraperDriver import ScraperDriver
 from model.ExecutionConfig import ExecutionConfig
 from model.RuntimeConfig import RuntimeConfig
 from network import PerformanceServerClient
+from network.PerformanceServerClient import NetworkError
 from sites.tradingview.TvChartPage import TvChartPage
 from sites.tradingview.TvHomePage import TvHomePage
 from usecase import ProvideRuntimeConfig
@@ -87,6 +88,9 @@ def start_obtaining_performances(execution_config: ExecutionConfig):
                     "Uploading performance for strategy " + runtime_config.strategy.name + " took {}."):
                 __upload_performance(performance, runtime_config)
 
+        except NetworkError as e:
+            __clean_up_on_crash(e, driver, runtime_config)
+            raise e
         except Exception as e:
             __clean_up_on_crash(e, driver, runtime_config)
             start_obtaining_performances(execution_config)
@@ -124,7 +128,7 @@ def __upload_performance(performance: dict, runtime_config: RuntimeConfig):
         "symbol": runtime_config.symbol.to_json(),
         "strategy": runtime_config.strategy.to_json(),
         "timeIntervals": [{
-            runtime_config.time_interval: performance
+            runtime_config.time_interval.value: performance
         }]
     }
     PerformanceServerClient.upload_performance(performance_payload)

@@ -11,6 +11,10 @@ __pass = EnvConfig.user_pass_chochko()
 __base_url = EnvConfig.performance_server_address()
 
 
+class NetworkError(Exception):
+    pass
+
+
 def request_strategy(**search_params) -> dict:
     endpoint = "/strategy"
     response = auth_get_request_payload(endpoint, search_params)
@@ -34,7 +38,7 @@ def delete_runtime_config(obj_id: str):
     payload = {"id": obj_id}
     response = auth_delete_request(endpoint, payload)
     if response.status_code != 200:
-        raise RuntimeError(f"Deleting config from server returned "
+        raise NetworkError(f"Deleting config from server returned "
                            f"{response.status_code}: {response.text}.")
 
 
@@ -73,4 +77,4 @@ def __return_json_only_on_success(response: Response) -> json:
     if response.status_code == 200:
         return json.loads(response.text)
     else:
-        raise RuntimeError(f"Server returned error {response.status_code}: {response.text}...")
+        raise NetworkError(f"Server returned error {response.status_code}: {response.text}...")
