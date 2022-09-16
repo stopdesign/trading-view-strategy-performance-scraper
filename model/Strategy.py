@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Strategy:
-    strategy_id: str
+    id: str
     name: str
     script: str
     version: int
@@ -11,8 +11,13 @@ class Strategy:
     @classmethod
     def from_mongo_server_response(cls, data: dict):
         return cls(
-            strategy_id=data["_id"],
+            id=data["_id"],
             name=data["name"],
             script=data["script"],
             version=data["version"]
         )
+
+    def to_json(self) -> dict:
+        return {
+            "_id": self.id
+        }

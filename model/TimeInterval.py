@@ -14,3 +14,10 @@ class TimeInterval(Enum):
     H4 = "240"
     D = "1D"
     W = "1W"
+
+    @classmethod
+    def from_value(cls, value: str):
+        for t in TimeInterval:
+            if t.value == value:
+                return t
+        raise RuntimeError(f"'{value}' is not a valid TimeInterval Enum!")

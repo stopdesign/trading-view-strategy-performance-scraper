@@ -6,6 +6,7 @@ from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 
 from driver.BaseDriver import BaseDriver
+from model.Performance import Performance
 from model.Symbol import Symbol
 from model.TimeInterval import TimeInterval
 from sites.tradingview.TvBasePage import TvBasePage
@@ -50,7 +51,7 @@ class TvChartPage(TvBasePage):
             maximize_footer_btn.click()
         return self
 
-    def extract_strategy_overview_report(self) -> Optional[Dict]:
+    def extract_strategy_overview_report(self) -> Performance:
         stats = RunStrategy.extract_strategy_overview(self.driver)
         return stats
 

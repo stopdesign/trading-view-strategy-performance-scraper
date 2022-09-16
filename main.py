@@ -32,7 +32,7 @@ def obtain_performance_for_all_perpetual(driver: ScraperDriver, should_use_rando
 
 def obtain_performance_for_common_securities(driver: ScraperDriver, should_use_random_strategy: bool) \
         -> ProgramReturnType:
-    runtime_config = ProvideExecutionConfig.for_all_equities(should_use_random_strategy)
+    runtime_config = ProvideExecutionConfig.for_common_equities(should_use_random_strategy)
     return __obtain_performance_for(runtime_config, driver, False)
 
 

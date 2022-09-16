@@ -23,3 +23,10 @@ class Symbol:
             broker_name=data["broker"],
             type=SymbolType[data["type"]]
         )
+
+    def to_json(self) -> dict:
+        return {
+            "name": self.equity_name,
+            "broker": self.broker_name,
+            "type": self.type.value
+        }

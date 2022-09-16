@@ -14,7 +14,7 @@ def notifier_server_address() -> str:
 
 
 def performance_server_address() -> str:
-    return "http://localhost:7624" if running_on_server() else "https://strategy-performance.kvankov.com"
+    return "https://strategy-performance.kvankov.com" if running_on_server() else "http://localhost:7624"
 
 
 def user_pass_chochko() -> Optional[str]:

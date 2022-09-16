@@ -2,7 +2,7 @@ import datetime
 import logging
 import math
 from time import sleep
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Type, Union
 
 import pyperclip
 from bs4 import BeautifulSoup, Tag
@@ -10,6 +10,7 @@ from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 
 from driver.BaseDriver import BaseDriver
+from model.Performance import Performance
 from model.Trade import Trade
 from usecase.chartActions import FindChartElements
 from utils import WebDriverKeyEventUtils, ScraperUtils
@@ -55,47 +56,37 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str, attempts_t
     else:
         if attempts_to_load < max_attempts_to_load:
             logging.info(f"Retrying loading script again to the screen.")
-            load_strategy_on_chart(driver, strategy_content, attempts_to_load+1)
+            load_strategy_on_chart(driver, strategy_content, attempts_to_load + 1)
         else:
             raise Exception(f"Unable to load script on the screen after {max_attempts_to_load} attempts...")
 
 
-def extract_strategy_overview(driver: BaseDriver) -> Optional[Dict]:
-    def __get_first_line_number_from(index: int, fails_for_first_time=False) -> float:
+def extract_strategy_overview(driver: BaseDriver) -> Performance:
+    def __get_number_from_index(index: int, return_type: Type[Union[int, float]], fails_for_first_time=False) -> Union[int, float]:
         try:
-            number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index + 1}]//strong")
-            float_number = ScraperUtils.extract_float_number_from(number.text)
-            return float_number
+            xpath = f"//div[@class='report-data']//div[{index + 1}]//div[contains(@class,'secondRow')]//div[1]"
+            number_str = driver.wait_and_get_element(1, By.XPATH, xpath)
+            number = ScraperUtils.extract_float_number_from(number_str.text)
+            return return_type(number)
         except Exception as e:
             if not fails_for_first_time:
-                return __get_first_line_number_from(index, True)
-            else:
-                return math.nan
-
-    def __get_second_line_number_from(index: int, fails_for_first_time=False) -> float:
-        try:
-            number = driver.wait_and_get_element(1, By.XPATH, f"//div[@class='report-data']//div[{index + 1}]//span")
-            float_number = ScraperUtils.extract_float_number_from(number.text)
-            return float_number
-        except Exception as e:
-            if not fails_for_first_time:
-                return __get_second_line_number_from(index, True)
+                return __get_number_from_index(index, return_type, True)
             else:
                 return math.nan
 
     if __were_trades_made(driver):
         __select_strategy_overview(driver)
-        return {
-            "netProfit": __get_second_line_number_from(0),
-            "totalTrades": __get_first_line_number_from(1),
-            "profitable": __get_first_line_number_from(2),
-            "profitFactor": __get_first_line_number_from(3),
-            "maxDrawdown": __get_second_line_number_from(4),
-            "avgTrade": __get_second_line_number_from(5),
-            "avgBarsInTrade": __get_first_line_number_from(6),
-        }
+        return Performance(
+            netProfit=__get_number_from_index(0, float),
+            totalTrades=__get_number_from_index(1, int),
+            profitable=__get_number_from_index(2, float),
+            profitFactor=__get_number_from_index(3, float),
+            maxDrawdown=__get_number_from_index(4, float),
+            avgTrade=__get_number_from_index(5, float),
+            avgBarsInTrade=__get_number_from_index(6, int),
+        )
     else:
-        return None
+        return Performance.empty()
 
 
 def extract_strategy_trades(driver: BaseDriver) -> Optional[List[Trade]]:
@@ -135,7 +126,8 @@ def extract_strategy_trades(driver: BaseDriver) -> Optional[List[Trade]]:
             if __has_trade_closed():
                 profit = ScraperUtils.extract_float_number_from(profit_text)
                 drawdown = ScraperUtils.extract_float_number_from(
-                    __extract_text_from_tag(trade_exit_columns[9].find("div", attrs={"class": "additional_percent_value"})))
+                    __extract_text_from_tag(
+                        trade_exit_columns[9].find("div", attrs={"class": "additional_percent_value"})))
                 date = datetime.datetime.strptime(__extract_text_from_tag(trade_exit_columns[3]), "%Y-%m-%d %H:%M")
                 output[trade_number] = {
                     "date": date,
@@ -171,7 +163,7 @@ def __were_trades_made(driver: BaseDriver) -> bool:
     try:
         __select_strategy_overview(driver)
         sleep(2)
-        xpath = "//div[@class='report-data']//div[@class='data-item']"
+        xpath = "//div[@class='report-data']"
         driver.wait_and_get_elements(1, By.XPATH, xpath)  # await for them to show
         return True
     except TimeoutException as e:
