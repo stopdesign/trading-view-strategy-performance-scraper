@@ -67,12 +67,15 @@ def extract_strategy_overview(driver: BaseDriver) -> Performance:
             xpath = f"//div[@class='report-data']//div[{index + 1}]//div[contains(@class,'secondRow')]//div[1]"
             number_str = driver.wait_and_get_element(1, By.XPATH, xpath)
             number = ScraperUtils.extract_float_number_from(number_str.text)
-            return return_type(number)
+            if math.isnan(number):
+                return str(math.nan)
+            else:
+                return return_type(number)
         except Exception as e:
             if not fails_for_first_time:
                 return __get_number_from_index(index, return_type, True)
             else:
-                return math.nan
+                return str(math.nan)
 
     if __were_trades_made(driver):
         __select_strategy_overview(driver)
