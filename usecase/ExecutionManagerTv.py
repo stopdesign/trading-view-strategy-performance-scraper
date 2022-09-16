@@ -75,10 +75,17 @@ def login(driver: ScraperDriver) -> TvChartPage:
 def start_obtaining_performances(execution_config: ExecutionConfig):
     driver = setup_driver()
     page = login(driver)
+    has_loaded_strategy = False
     while True:
         try:
             with TimeUtils.measure_time("Obtaining runtime config took {}."):
                 runtime_config = ProvideRuntimeConfig.request_runtime_config_for(execution_config)
+
+            if has_loaded_strategy is False:
+                with TimeUtils.measure_time("Adding strategy to chart took {}."):
+                    page.clean_all_overlays()\
+                        .add_strategy_to_chart(runtime_config.strategy.script)
+                    has_loaded_strategy = True
 
             with TimeUtils.measure_time(
                     "Obtaining performance for strategy " + runtime_config.strategy.name + " took {}."):
@@ -111,8 +118,6 @@ def __obtain_performance_for(runtime_config: RuntimeConfig,
                              should_add_trades: bool) -> dict:
     chart_page.decline_cookies() \
         .remove_possible_advert_overlay() \
-        .clean_all_overlays() \
-        .add_strategy_to_chart(runtime_config.strategy.script) \
         .change_footer_window_full_size(should_maximize_it=True) \
         .change_symbol_to(runtime_config.symbol) \
         .change_time_interval_to(runtime_config.time_interval)
