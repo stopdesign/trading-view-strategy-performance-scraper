@@ -11,9 +11,9 @@ from utils import TimeUtils, FileUtils
 logging.basicConfig(format='[%(asctime)s.%(msecs)03d][%(levelname)s]:  %(message)s',
                     datefmt='%Y-%m-%dT%H:%M:%S', level=logging.INFO)
 
+StrategyPerformanceReturnType = Dict
+ProgramReturnType = Tuple[RuntimeConfig, Optional[StrategyPerformanceReturnType]]
 
-StrategyPerformanceReturnType=Dict
-ProgramReturnType=Tuple[RuntimeConfig, Optional[StrategyPerformanceReturnType]]
 
 def obtain_strategy_performance(driver: ScraperDriver, should_use_random_strategy: bool) \
         -> ProgramReturnType:
@@ -29,12 +29,15 @@ def obtain_performance_for_all_perpetual(driver: ScraperDriver, should_use_rando
     runtime_config = ProvideExecutionConfig.for_all_perpetual(should_use_random_strategy)
     return __obtain_performance_for(runtime_config, driver, False)
 
+
 def obtain_performance_for_common_securities(driver: ScraperDriver, should_use_random_strategy: bool) \
         -> ProgramReturnType:
     runtime_config = ProvideExecutionConfig.for_all_equities(should_use_random_strategy)
     return __obtain_performance_for(runtime_config, driver, False)
 
-def __obtain_performance_for(runtime_config: RuntimeConfig, driver: ScraperDriver, should_add_trades: bool) -> ProgramReturnType:
+
+def __obtain_performance_for(runtime_config: RuntimeConfig, driver: ScraperDriver,
+                             should_add_trades: bool) -> ProgramReturnType:
     try:
         chart_page = ExecutionManagerTv.login(driver)
         strategies_report = ExecutionManagerTv \
