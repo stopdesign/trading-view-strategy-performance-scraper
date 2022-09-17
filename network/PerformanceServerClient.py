@@ -15,6 +15,17 @@ class NetworkError(Exception):
     pass
 
 
+class RuntimeConfigExhaustedException(Exception):
+    """
+    Thrown when there are no more runtime configs. This happens when a strategy and its symbols and
+    time intervals are exhausted and the strategy need to be replaced
+    """
+    pass
+
+
+__RESPONSE_CODE_RUNTIME_STRATEGY_EXHAUSTED = 404
+
+
 def request_strategy(**search_params) -> dict:
     endpoint = "/strategy"
     response = auth_get_request_payload(endpoint, search_params)
@@ -30,6 +41,8 @@ def request_random_strategy() -> dict:
 def request_runtime_config(payload: dict) -> dict:
     endpoint = "/runtimeConfig"
     response = auth_get_request_payload(endpoint, payload)
+    if response.status_code == __RESPONSE_CODE_RUNTIME_STRATEGY_EXHAUSTED:
+        raise RuntimeConfigExhaustedException(f"You are done with this strategy. Please select another one!")
     return __return_json_only_on_success(response)
 
 

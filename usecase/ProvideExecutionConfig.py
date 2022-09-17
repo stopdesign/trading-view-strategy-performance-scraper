@@ -1,6 +1,6 @@
 from typing import List
 
-from model.ExecutionConfig import ExecutionConfig
+from model.ExecutionConfig import ExecutionConfig, OnExecutionEndStrategy
 from model.Strategy import Strategy
 from model.Symbol import Symbol, SymbolType
 from model.TimeInterval import TimeInterval
@@ -17,14 +17,28 @@ def for_all_perpetual(should_use_random_strategy: bool) -> ExecutionConfig:
         excluded_base_assets=__BINANCE_EXCLUDED_BASE_ASSETS
     )
     time_intervals = __get_time_intervals()
-    return ExecutionConfig(symbols=symbols, intervals=time_intervals, strategy=strategy)
+    # what to do when all time frames and symbols are exhausted/done
+    on_execution_ended_strategy = OnExecutionEndStrategy.SELECT_NEW_RANDOM_STRATEGY if should_use_random_strategy else OnExecutionEndStrategy.FINISH_EXECUTION
+    return ExecutionConfig(symbols=symbols, intervals=time_intervals,
+                           strategy=strategy, onExecutionEndedStrategy=on_execution_ended_strategy)
 
 
 def for_common_equities(should_use_random_strategy: bool) -> ExecutionConfig:
     strategy = __get_strategy_random() if should_use_random_strategy else __get_strategy_ema_vwap()
     symbols = __get_subset_of_different_equities()
     time_intervals = __get_time_intervals()
-    return ExecutionConfig(symbols=symbols, intervals=time_intervals, strategy=strategy)
+    # what to do when all time frames and symbols are exhausted/done
+    on_execution_ended_strategy = OnExecutionEndStrategy.SELECT_NEW_RANDOM_STRATEGY if should_use_random_strategy else OnExecutionEndStrategy.FINISH_EXECUTION
+    return ExecutionConfig(symbols=symbols, intervals=time_intervals,
+                           strategy=strategy, onExecutionEndedStrategy=on_execution_ended_strategy)
+
+
+def get_new_config_with_random_strategy_for(execution_config: ExecutionConfig) -> ExecutionConfig:
+    new_strategy = __get_strategy_random()
+    return ExecutionConfig(symbols=execution_config.symbols,
+                           intervals=execution_config.intervals,
+                           strategy=new_strategy,
+                           onExecutionEndedStrategy=execution_config.onExecutionEndedStrategy)
 
 
 def __get_subset_of_different_equities() -> List[Symbol]:

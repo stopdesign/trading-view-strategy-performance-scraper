@@ -2,13 +2,13 @@ import logging
 from typing import Optional
 
 from driver.ScraperDriver import ScraperDriver
-from model.ExecutionConfig import ExecutionConfig
+from model.ExecutionConfig import ExecutionConfig, OnExecutionEndStrategy
 from model.RuntimeConfig import RuntimeConfig
 from network import PerformanceServerClient
 from network.PerformanceServerClient import NetworkError, RuntimeConfigExhaustedException
 from sites.tradingview.TvChartPage import TvChartPage
 from sites.tradingview.TvHomePage import TvHomePage
-from usecase import ProvideRuntimeConfig
+from usecase import ProvideRuntimeConfig, ProvideExecutionConfig
 from utils import TimeUtils
 
 
@@ -34,7 +34,7 @@ def start_obtaining_performances(execution_config: ExecutionConfig):
 
             if has_loaded_strategy is False:
                 with TimeUtils.measure_time("Adding strategy to chart took {}."):
-                    page.clean_all_overlays()\
+                    page.clean_all_overlays() \
                         .add_strategy_to_chart(runtime_config.strategy.script)
                     has_loaded_strategy = True
 
@@ -51,6 +51,7 @@ def start_obtaining_performances(execution_config: ExecutionConfig):
             raise e
         except RuntimeConfigExhaustedException as e:
             logging.info(e)
+            __on_strategy_performance_extraction_finished(execution_config)
         except Exception as e:
             __clean_up_on_crash(e, driver, runtime_config)
             start_obtaining_performances(execution_config)
@@ -79,6 +80,20 @@ def __obtain_performance_for(runtime_config: RuntimeConfig,
     # TODO add it to the server
     # strategy_trades = chart_page.extract_strategy_trades_report() if should_add_trades else []
     return strategy_performance.to_json()
+
+
+def __on_strategy_performance_extraction_finished(execution_config: ExecutionConfig):
+    if execution_config.onExecutionEndedStrategy == OnExecutionEndStrategy.SELECT_NEW_RANDOM_STRATEGY:
+        new_exec_config = ProvideExecutionConfig.get_new_config_with_random_strategy_for(execution_config)
+        logging.info(f"Restarting program with new config: {new_exec_config}")
+        start_obtaining_performances(new_exec_config)
+    elif execution_config.onExecutionEndedStrategy == OnExecutionEndStrategy.FINISH_EXECUTION:
+        logging.info(f"Performance extraction for strategy "
+                     f"{execution_config.strategy.name} v{execution_config.strategy.version} "
+                     f"is done. Terminating...")
+    else:
+        logging.error(f"Not handled OnExecutionEndStrategy '{execution_config.onExecutionEndedStrategy}'."
+                      f"Terminating...")
 
 
 def __upload_performance(performance: dict, runtime_config: RuntimeConfig):
