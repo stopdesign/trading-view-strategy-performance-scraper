@@ -24,6 +24,10 @@ def login(driver: ScraperDriver) -> TvChartPage:
 
 
 def start_obtaining_performances(execution_config: ExecutionConfig):
+    def __get_runtime_config_info(rtc: RuntimeConfig) -> str:
+        return f"symbol {rtc.symbol.equity_name} with strategy {rtc.strategy.name} " \
+               f"v{rtc.strategy.version} and timeframe {rtc.time_interval}"
+
     driver = setup_driver()
     page = login(driver)
     has_loaded_strategy = False
@@ -33,17 +37,21 @@ def start_obtaining_performances(execution_config: ExecutionConfig):
                 runtime_config = ProvideRuntimeConfig.request_runtime_config_for(execution_config)
 
             if has_loaded_strategy is False:
-                with TimeUtils.measure_time("Adding strategy to chart took {}."):
+                with TimeUtils.measure_time("Adding strategy to chart for " +
+                                            __get_runtime_config_info(runtime_config) +
+                                            " took {}."):
                     page.clean_all_overlays() \
                         .add_strategy_to_chart(runtime_config.strategy.script)
                     has_loaded_strategy = True
 
-            with TimeUtils.measure_time(
-                    "Obtaining performance for strategy " + runtime_config.strategy.name + " took {}."):
+            with TimeUtils.measure_time("Obtaining performance for " +
+                                        __get_runtime_config_info(runtime_config) +
+                                        " took {}."):
                 performance = __obtain_performance_for(runtime_config, page, should_add_trades=False)
 
-            with TimeUtils.measure_time(
-                    "Uploading performance for strategy " + runtime_config.strategy.name + " took {}."):
+            with TimeUtils.measure_time("Uploading performance for " +
+                                        __get_runtime_config_info(runtime_config) +
+                                        " took {}."):
                 __upload_performance(performance, runtime_config)
 
         except NetworkError as e:
@@ -51,6 +59,7 @@ def start_obtaining_performances(execution_config: ExecutionConfig):
             raise e
         except RuntimeConfigExhaustedException as e:
             logging.info(e)
+            __safely_close_driver(driver)
             __on_strategy_performance_extraction_finished(execution_config)
         except Exception as e:
             __clean_up_on_crash(e, driver, runtime_config)
@@ -59,12 +68,16 @@ def start_obtaining_performances(execution_config: ExecutionConfig):
 
 def __clean_up_on_crash(e: Exception, driver: ScraperDriver, runtime_config: Optional[RuntimeConfig]):
     logging.error(e, exc_info=True)
+    __safely_close_driver(driver)
+    if runtime_config:
+        PerformanceServerClient.delete_runtime_config(runtime_config.id)
+
+
+def __safely_close_driver(driver: ScraperDriver):
     try:
         driver.close()
     except Exception as e:
         logging.error("Can't close driver.", e)
-    if runtime_config:
-        PerformanceServerClient.delete_runtime_config(runtime_config.id)
 
 
 def __obtain_performance_for(runtime_config: RuntimeConfig,
