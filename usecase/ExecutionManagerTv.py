@@ -31,7 +31,8 @@ def start_obtaining_performances(execution_config: ExecutionConfig):
     driver = setup_driver()
     page = login(driver)
     has_loaded_strategy = False
-    while True:
+    should_run = True
+    while should_run:
         try:
             with TimeUtils.measure_time("Obtaining runtime config took {}."):
                 runtime_config = ProvideRuntimeConfig.request_runtime_config_for(execution_config)
@@ -60,7 +61,9 @@ def start_obtaining_performances(execution_config: ExecutionConfig):
         except RuntimeConfigExhaustedException as e:
             logging.info(e)
             __safely_close_driver(driver)
-            __on_strategy_performance_extraction_finished(execution_config)
+            should_abort = __on_strategy_performance_extraction_finished(execution_config)
+            if should_abort:
+                break
         except Exception as e:
             __clean_up_on_crash(e, driver, runtime_config)
             start_obtaining_performances(execution_config)
@@ -95,18 +98,21 @@ def __obtain_performance_for(runtime_config: RuntimeConfig,
     return strategy_performance.to_json()
 
 
-def __on_strategy_performance_extraction_finished(execution_config: ExecutionConfig):
+def __on_strategy_performance_extraction_finished(execution_config: ExecutionConfig) -> bool:
     if execution_config.onExecutionEndedStrategy == OnExecutionEndStrategy.SELECT_NEW_RANDOM_STRATEGY:
         new_exec_config = ProvideExecutionConfig.get_new_config_with_random_strategy_for(execution_config)
         logging.info(f"Restarting program with new config: {new_exec_config}")
         start_obtaining_performances(new_exec_config)
+        return False
     elif execution_config.onExecutionEndedStrategy == OnExecutionEndStrategy.FINISH_EXECUTION:
         logging.info(f"Performance extraction for strategy "
                      f"{execution_config.strategy.name} v{execution_config.strategy.version} "
                      f"is done. Terminating...")
+        return True
     else:
         logging.error(f"Not handled OnExecutionEndStrategy '{execution_config.onExecutionEndedStrategy}'."
                       f"Terminating...")
+        return True
 
 
 def __upload_performance(performance: dict, runtime_config: RuntimeConfig):

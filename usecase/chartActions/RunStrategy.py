@@ -39,9 +39,9 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str, attempts_t
 
     def __did_script_loaded_successfully() -> bool:
         # TODO get prev count of elements and wait until count change
-        # sleep(1.5)
+        sleep(2)
         _xpath = "//div[contains(@class,'tv-script-console-text')]//div[last()]"
-        last_console_message = driver.wait_and_get_element(5, By.XPATH, _xpath)
+        last_console_message = driver.wait_and_get_element(2, By.XPATH, _xpath)
         return "error" not in last_console_message.get_attribute("class")
 
     max_attempts_to_load = 3
@@ -62,9 +62,19 @@ def load_strategy_on_chart(driver: BaseDriver, strategy_content: str, attempts_t
 
 
 def extract_strategy_overview(driver: BaseDriver) -> Performance:
-    def __get_number_from_index(index: int, return_type: Type[Union[int, float]], fails_for_first_time=False) -> Union[int, float]:
+    def __get_first_column_number(index: int, return_type: Type[Union[int, float]]) -> Union[int, float]:
+        return __get_number_from_index(index, return_type, 1)
+
+    def __get_second_column_number(index: int, return_type: Type[Union[int, float]]) -> Union[int, float]:
+        return __get_number_from_index(index, return_type, 2)
+
+    def __get_number_from_index(index: int, return_type: Type[Union[int, float]],
+                                sub_column_index: int,
+                                fails_for_first_time=False) \
+            -> Union[int, float]:
         try:
-            xpath = f"//div[@class='report-data']//div[{index + 1}]//div[contains(@class,'secondRow')]//div[1]"
+            xpath = f"//div[@class='report-data']//div[{index + 1}]" \
+                    f"//div[contains(@class,'secondRow')]//div[{sub_column_index}]"
             number_str = driver.wait_and_get_element(1, By.XPATH, xpath)
             number = ScraperUtils.extract_float_number_from(number_str.text)
             if math.isnan(number):
@@ -80,13 +90,13 @@ def extract_strategy_overview(driver: BaseDriver) -> Performance:
     if __were_trades_made(driver):
         __select_strategy_overview(driver)
         return Performance(
-            netProfit=__get_number_from_index(0, float),
-            totalTrades=__get_number_from_index(1, int),
-            profitable=__get_number_from_index(2, float),
-            profitFactor=__get_number_from_index(3, float),
-            maxDrawdown=__get_number_from_index(4, float),
-            avgTrade=__get_number_from_index(5, float),
-            avgBarsInTrade=__get_number_from_index(6, int),
+            netProfit=__get_second_column_number(0, float),
+            totalTrades=__get_first_column_number(1, int),
+            profitable=__get_first_column_number(2, float),
+            profitFactor=__get_first_column_number(3, float),
+            maxDrawdown=__get_second_column_number(4, float),
+            avgTrade=__get_second_column_number(5, float),
+            avgBarsInTrade=__get_first_column_number(6, int),
         )
     else:
         return Performance.empty()

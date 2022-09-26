@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 
 
@@ -12,8 +13,9 @@ class Performance:
     avgBarsInTrade: int
 
     def to_json(self) -> dict:
+        nan_convert = -99999999
         return {
-            "netProfit": self.netProfit,
+            "netProfit": nan_convert if math.isnan(self.netProfit) else self.netProfit,
             "totalTrades": self.totalTrades,
             "profitable": self.profitable,
             "profitFactor": self.profitFactor,

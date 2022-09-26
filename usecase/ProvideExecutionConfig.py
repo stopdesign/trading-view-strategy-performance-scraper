@@ -18,7 +18,7 @@ def for_all_perpetual(should_use_random_strategy: bool) -> ExecutionConfig:
     )
     time_intervals = __get_time_intervals()
     # what to do when all time frames and symbols are exhausted/done
-    on_execution_ended_strategy = OnExecutionEndStrategy.SELECT_NEW_RANDOM_STRATEGY if should_use_random_strategy else OnExecutionEndStrategy.FINISH_EXECUTION
+    on_execution_ended_strategy = __get_on_execution_end_strategy(should_use_random_strategy)
     return ExecutionConfig(symbols=symbols, intervals=time_intervals,
                            strategy=strategy, onExecutionEndedStrategy=on_execution_ended_strategy)
 
@@ -28,7 +28,7 @@ def for_common_equities(should_use_random_strategy: bool) -> ExecutionConfig:
     symbols = __get_subset_of_different_equities()
     time_intervals = __get_time_intervals()
     # what to do when all time frames and symbols are exhausted/done
-    on_execution_ended_strategy = OnExecutionEndStrategy.SELECT_NEW_RANDOM_STRATEGY if should_use_random_strategy else OnExecutionEndStrategy.FINISH_EXECUTION
+    on_execution_ended_strategy = __get_on_execution_end_strategy(should_use_random_strategy)
     return ExecutionConfig(symbols=symbols, intervals=time_intervals,
                            strategy=strategy, onExecutionEndedStrategy=on_execution_ended_strategy)
 
@@ -99,7 +99,8 @@ def __get_strategy(should_use_random_strategy):
 
 
 def __get_strategy_ema_vwap() -> Strategy:
-    strategy = PerformanceServerClient.request_strategy(name="ema&vwap&macd", version=1)
+    # strategy = PerformanceServerClient.request_strategy(name="ema&vwap&macd", version=1)
+    strategy = PerformanceServerClient.request_strategy(name="ema&vwap&macd", version=2)
     return Strategy.from_mongo_server_response(strategy)
 
 
@@ -109,7 +110,14 @@ def __get_strategy_random() -> Strategy:
 
 
 def __get_time_intervals() -> List[TimeInterval]:
+    # return [TimeInterval.M5, TimeInterval.M15, TimeInterval.M30,
+    #         TimeInterval.H1, TimeInterval.H2, TimeInterval.H3, TimeInterval.H4]
     return [TimeInterval.M5, TimeInterval.M15, TimeInterval.M30,
             TimeInterval.H1, TimeInterval.H2, TimeInterval.H3, TimeInterval.H4,
             TimeInterval.D, TimeInterval.W]
-    # return [TimeInterval.M5, TimeInterval.M15, TimeInterval.M30]
+    # return [TimeInterval.M30, TimeInterval.H1, TimeInterval.H2,
+            # TimeInterval.H3, TimeInterval.H4]
+
+
+def __get_on_execution_end_strategy(should_use_random_strategy):
+    return OnExecutionEndStrategy.SELECT_NEW_RANDOM_STRATEGY if should_use_random_strategy else OnExecutionEndStrategy.FINISH_EXECUTION
