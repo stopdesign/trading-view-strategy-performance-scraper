@@ -14,15 +14,12 @@ def notifier_server_address() -> str:
 
 
 def performance_server_address() -> str:
-    return "https://strategy-performance.kvankov.com" if running_on_server() else "http://localhost:7624"
+    # return "https://strategy-performance.kvankov.com" if running_on_server() else "http://localhost:7624"
+    return "https://strategy-performance.kvankov.com"
 
 
 def user_pass_chochko() -> Optional[str]:
     return _get_env_variable_for("USER_PASS_CHOCHKO", None)
-
-
-def rest_server_base_url() -> str:
-    return "http://rest-server-combined:9999" if running_on_server() else "http://localhost:9090"
 
 
 def _get_env_variable_for(env_name, default):
